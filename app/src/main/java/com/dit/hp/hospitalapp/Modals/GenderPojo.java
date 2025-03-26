@@ -7,6 +7,15 @@ public class GenderPojo implements Serializable {
     private int genderId;
     private String genderName;
 
+    public GenderPojo() {
+
+    }
+
+    public GenderPojo(int genderId, String genderName) {
+        this.genderId = genderId;
+        this.genderName = genderName;
+    }
+
     public int getGenderId() {
         return genderId;
     }

@@ -7,17 +7,16 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-
-import com.dit.hp.hospitalapp.Modals.GenderPojo;
+import com.dit.hp.hospitalapp.Modals.BloodGroupPojo;
 
 import java.util.List;
 
-public class GenderSpinnerAdapter extends ArrayAdapter<GenderPojo> {
+public class BloodGroupSpinnerAdapter extends ArrayAdapter<BloodGroupPojo> {
 
     private Context context;
-    private List<GenderPojo> values;
+    private List<BloodGroupPojo> values;
 
-    public GenderSpinnerAdapter(Context context, int textViewResourceId, List<GenderPojo> values) {
+    public BloodGroupSpinnerAdapter(Context context, int textViewResourceId, List<BloodGroupPojo> values) {
         super(context, textViewResourceId, values);
         this.context = context;
         this.values = values;
@@ -27,7 +26,7 @@ public class GenderSpinnerAdapter extends ArrayAdapter<GenderPojo> {
         return values.size();
     }
 
-    public GenderPojo getItem(int position) {
+    public BloodGroupPojo getItem(int position) {
         return values.get(position);
     }
 
@@ -38,8 +37,8 @@ public class GenderSpinnerAdapter extends ArrayAdapter<GenderPojo> {
 
     public int getPositionForItem(String name) {
         for (int i = 0; i < values.size(); i++) {
-            GenderPojo item = values.get(i);
-            if (item.getGenderName().equalsIgnoreCase(name)) {
+            BloodGroupPojo item = values.get(i);
+            if (item.getBloodGroupName().equalsIgnoreCase(name)) {
                 return i;
             }
         }
@@ -55,7 +54,7 @@ public class GenderSpinnerAdapter extends ArrayAdapter<GenderPojo> {
         label.setTextSize(18);
         label.setTextColor(Color.parseColor("#13914f"));
         label.setPadding(30, 0, 30, 0);
-        label.setText(values.get(position).getGenderName());
+        label.setText(values.get(position).getBloodGroupName());
         return label;
     }
 
@@ -67,7 +66,7 @@ public class GenderSpinnerAdapter extends ArrayAdapter<GenderPojo> {
         label.setTextColor(Color.parseColor("#585566"));
         label.setTextSize(18);
         label.setPadding(15, 15, 15, 15);
-        label.setText(values.get(position).getGenderName());
+        label.setText(values.get(position).getBloodGroupName());
         return label;
     }
 }

@@ -1,0 +1,23 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="10dp"
+    android:gravity="center_vertical">
+
+    <TextView
+        android:id="@+id/testName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Test Name"
+        android:textSize="16sp"
+        android:padding="8dp" />
+
+    <ImageView
+        android:id="@+id/imageViewCheck"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/check"
+        android:visibility="invisible" />
+</LinearLayout>

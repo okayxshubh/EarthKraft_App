@@ -46,7 +46,7 @@
                 android:gravity="center"
                 android:letterSpacing="0.025"
                 android:text="Register Patient"
-                android:textColor="@color/black"
+                android:textColor="@color/hospital_red"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -86,8 +86,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:layout_margin="10dp"
+                    android:layout_weight="1"
                     android:gravity="center|center_horizontal|center_vertical"
                     android:orientation="vertical">
 
@@ -95,24 +95,22 @@
                         android:id="@+id/mainImageView"
                         android:layout_width="200dp"
                         android:layout_height="220dp"
-                        android:padding="30dp"
-                        android:src="@drawable/camera"
-                        android:background="@drawable/customborder_dialog"
                         android:layout_weight="1"
-                        android:adjustViewBounds="true"/>
+                        android:adjustViewBounds="true"
+                        android:background="@drawable/customborder_dialog"
+                        android:padding="60dp"
+                        android:src="@drawable/camera" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center|center_vertical|center_horizontal"
                         android:padding="0dp"
-                        android:textStyle="bold"
-                        android:text="Capture Patient's Photo"
+                        android:text="Patient's Photo"
                         android:textColor="@color/hospital_red"
-                        android:textSize="18sp" />
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
-
-
 
 
                 <LinearLayout
@@ -153,7 +151,7 @@
                             android:layout_weight="1"
                             android:padding="5dp"
                             android:paddingStart="18dp"
-                            android:text="Record Date *"
+                            android:text="Record Date"
                             android:textAlignment="textStart"
                             android:textColor="@color/darkblue"
                             android:textSize="14sp" />
@@ -230,7 +228,7 @@
                         android:layout_weight="1"
                         android:padding="5dp"
                         android:paddingStart="18dp"
-                        android:text="Select DOB for Age"
+                        android:text="Select Date of Birth"
                         android:textAlignment="textStart"
                         android:textColor="@color/darkblue"
                         android:textSize="14sp" />
@@ -245,11 +243,10 @@
                         android:focusable="false"
                         android:fontFamily="@font/raleway_semibold"
                         android:gravity="center"
-                        android:hint="Select Date"
+                        android:hint="Select DOB"
                         android:textColor="#13914f"
                         android:textSize="14sp" />
                 </LinearLayout>
-
 
 
                 <LinearLayout
@@ -325,6 +322,38 @@
                 </LinearLayout>
 
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="2dp"
+                    android:background="#fff"
+                    android:elevation="4dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/bloodLabel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:padding="5dp"
+                        android:paddingStart="18dp"
+                        android:text="Select Blood Group"
+                        android:textAlignment="textStart"
+                        android:textColor="@color/darkblue"
+                        android:textSize="14sp" />
+
+                    <com.doi.spinnersearchable.SearchableSpinner
+                        android:id="@+id/bloodGroupSpinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="30dp"
+                        android:layout_margin="10dp"
+                        android:background="@drawable/customborder_dialog"
+                        android:fontFamily="@font/raleway_semibold"
+                        android:textColor="#13914f"
+                        android:textSize="14sp"
+                        app:hintText="Please Select Blood Group" />
+                </LinearLayout>
+
 
                 <TextView
                     android:layout_width="match_parent"
@@ -340,34 +369,42 @@
 
 
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="2dp"
+                    android:layout_marginTop="2dp"
                     android:background="#fff"
                     android:elevation="4dp"
                     android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/testNameLabel"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="fill_parent"
+                        android:layout_weight="1"
                         android:padding="5dp"
                         android:paddingStart="18dp"
-                        android:text="Please Select Test Name"
+                        android:text="Select Tests"
                         android:textAlignment="textStart"
                         android:textColor="@color/darkblue"
                         android:textSize="14sp" />
 
-                    <com.doi.spinnersearchable.SearchableSpinner
-                        android:id="@+id/nameOfTestSpinner"
+
+                    <EditText
+                        android:id="@+id/testTV"
                         android:layout_width="match_parent"
-                        android:layout_height="30dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="100dp"
                         android:layout_margin="10dp"
+                        android:layout_weight="1"
                         android:background="@drawable/customborder_dialog"
+                        android:focusable="false"
                         android:fontFamily="@font/raleway_semibold"
+                        android:hint="Select Tests"
+                        android:padding="8dp"
                         android:textColor="#13914f"
-                        android:textSize="14sp"
-                        app:hintText="Please Select Test Name" />
+                        android:textSize="14sp" />
+
+
                 </LinearLayout>
 
 
@@ -399,7 +436,7 @@
                         android:fontFamily="@font/raleway_semibold"
                         android:textColor="#13914f"
                         android:textSize="14sp"
-                        app:hintText="Please Select a Test Name" />
+                        app:hintText="Please Select Referred By" />
                 </LinearLayout>
 
 
@@ -433,8 +470,8 @@
                         android:background="@drawable/customborder_dialog"
                         android:fontFamily="@font/raleway_semibold"
                         android:gravity="center"
-                        android:inputType="number"
                         android:hint="Amount Due"
+                        android:inputType="number"
                         android:maxLength="10"
                         android:textColor="#13914f"
                         android:textSize="14sp" />
