@@ -2,10 +2,10 @@ package com.kushkumardhawan.locationmanager.base;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 
 import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.kushkumardhawan.locationmanager.LocationManager;
 import com.kushkumardhawan.locationmanager.configuration.LocationConfiguration;

@@ -1,15 +1,19 @@
 package com.kushkumardhawan.locationmanager.providers.locationprovider;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.content.IntentSender.SendIntentException;
+import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -25,61 +29,52 @@ import com.google.android.gms.tasks.Task;
 
 import com.kushkumardhawan.locationmanager.constants.RequestCode;
 
-
 class GooglePlayServicesLocationSource extends LocationCallback {
 
+    private final Context context;
     private final FusedLocationProviderClient fusedLocationProviderClient;
     private final LocationRequest locationRequest;
     private final SourceListener sourceListener;
 
     interface SourceListener extends OnSuccessListener<LocationSettingsResponse>, OnFailureListener {
         void onSuccess(LocationSettingsResponse locationSettingsResponse);
-
         void onFailure(@NonNull Exception exception);
-
         void onLocationResult(@Nullable LocationResult locationResult);
-
         void onLastKnowLocationTaskReceived(@NonNull Task<Location> task);
     }
 
     GooglePlayServicesLocationSource(Context context, LocationRequest locationRequest, SourceListener sourceListener) {
+        this.context = context.getApplicationContext();  // Prevent memory leaks
         this.sourceListener = sourceListener;
         this.locationRequest = locationRequest;
-        this.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
+        this.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this.context);
     }
 
     void checkLocationSettings() {
-        LocationServices.getSettingsClient(fusedLocationProviderClient.getApplicationContext())   //fusedLocationProviderClient.getApplicationContext()
+        LocationServices.getSettingsClient(context)  // Corrected context usage
                 .checkLocationSettings(
                         new LocationSettingsRequest.Builder()
                                 .addLocationRequest(locationRequest)
                                 .build()
                 )
-                .addOnSuccessListener(new OnSuccessListener<LocationSettingsResponse>() {
-                    @Override
-                    public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                        if (sourceListener != null)
-                            sourceListener.onSuccess(locationSettingsResponse);
-                    }
+                .addOnSuccessListener(locationSettingsResponse -> {
+                    if (sourceListener != null)
+                        sourceListener.onSuccess(locationSettingsResponse);
                 })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception exception) {
-                        if (sourceListener != null) sourceListener.onFailure(exception);
-                    }
+                .addOnFailureListener(exception -> {
+                    if (sourceListener != null) sourceListener.onFailure(exception);
                 });
     }
 
-   
-
-    void startSettingsApiResolutionForResult(@NonNull ResolvableApiException resolvable, Activity activity) throws SendIntentException {
+    void startSettingsApiResolutionForResult(@NonNull ResolvableApiException resolvable, Activity activity) throws IntentSender.SendIntentException {
         resolvable.startResolutionForResult(activity, RequestCode.SETTINGS_API);
     }
 
-    @SuppressWarnings("ResourceType")
+    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     void requestLocationUpdate() {
-        // This method is suited for the foreground use cases
-        fusedLocationProviderClient.requestLocationUpdates(locationRequest, this, Looper.myLooper());
+        if (!hasLocationPermission()) return; // Permission check added
+
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest, this, Looper.getMainLooper());
     }
 
     @NonNull
@@ -87,15 +82,14 @@ class GooglePlayServicesLocationSource extends LocationCallback {
         return fusedLocationProviderClient.removeLocationUpdates(this);
     }
 
-    @SuppressWarnings("ResourceType")
+    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     void requestLastLocation() {
+        if (!hasLocationPermission()) return; // Permission check added
+
         fusedLocationProviderClient.getLastLocation()
-                .addOnCompleteListener(new OnCompleteListener<Location>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Location> task) {
-                        if (sourceListener != null)
-                            sourceListener.onLastKnowLocationTaskReceived(task);
-                    }
+                .addOnCompleteListener(task -> {
+                    if (sourceListener != null)
+                        sourceListener.onLastKnowLocationTaskReceived(task);
                 });
     }
 
@@ -104,4 +98,9 @@ class GooglePlayServicesLocationSource extends LocationCallback {
         if (sourceListener != null) sourceListener.onLocationResult(locationResult);
     }
 
+    // ✅ Permission Check Method
+    private boolean hasLocationPermission() {
+        return ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
 }

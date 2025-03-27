@@ -34,6 +34,8 @@ dependencies {
     implementation project(path: ':easycam')
     implementation project(path: ':filepicker')
     implementation project(path: ':spinnersearchable')
+    implementation project(path: ':locationmanager')
+
 
 
     // External Lib.. First Two Modules for Image Compression
@@ -41,11 +43,9 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
 
 
+    // External Lib for Location
+    implementation libs.play.services.location
 
-    // Android X Dependencies for Location Manager
-//    implementation 'androidx.appcompat:appcompat:1.6.1'
-//    implementation 'androidx.core:core-ktx:1.13.0'
-//    implementation 'androidx.recyclerview:recyclerview:1.3.2'
 
 
     implementation libs.appcompat

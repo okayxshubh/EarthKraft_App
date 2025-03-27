@@ -1,11 +1,16 @@
 package com.dit.hp.hospitalapp;
 
+import static androidx.core.location.LocationManagerCompat.getCurrentLocation;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -20,21 +25,32 @@ import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.dit.hp.hospitalapp.Adapter.BloodGroupSpinnerAdapter;
 import com.dit.hp.hospitalapp.Adapter.GenderSpinnerAdapter;
+import com.dit.hp.hospitalapp.Adapter.ReferredBySpinnerAdapter;
 import com.dit.hp.hospitalapp.Adapter.TestSelectionAdapter;
 import com.dit.hp.hospitalapp.Modals.BloodGroupPojo;
 import com.dit.hp.hospitalapp.Modals.GenderPojo;
+import com.dit.hp.hospitalapp.Modals.ReferredByPojo;
 import com.dit.hp.hospitalapp.Modals.TestsPojo;
 import com.dit.hp.hospitalapp.Presentation.CustomDialog;
 import com.dit.hp.hospitalapp.interfaces.OnTestSelectedListener;
+import com.dit.hp.hospitalapp.utilities.SamplePresenter;
 import com.doi.spinnersearchable.SearchableSpinner;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.kushkumardhawan.filepicker.activity.FilePickerActivity;
 import com.kushkumardhawan.filepicker.config.Configurations;
 import com.kushkumardhawan.filepicker.model.MediaFile;
+import com.kushkumardhawan.locationmanager.base.LocationBaseActivity;
+import com.kushkumardhawan.locationmanager.configuration.LocationConfiguration;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -48,7 +64,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
-public class RegisterNewPatient extends AppCompatActivity implements OnTestSelectedListener {
+public class RegisterNewPatient extends  LocationBaseActivity implements SamplePresenter.SampleView, OnTestSelectedListener {
 
     CustomDialog CD = new CustomDialog();
     LinearLayout receiptNoLayout;
@@ -59,8 +75,9 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
     ImageView mainImageView;
 
     // Spinners + Adapters
-    SearchableSpinner genderSpinner, referredBySpinner, bloodGroupSpinner;;
+    SearchableSpinner genderSpinner, referredBySpinner, bloodGroupSpinner;
     List<TestsPojo> finalSelectionTests = new ArrayList<>();
+    String GLOBAL_LOCATION_STR;
 
     // For Camera Image / Image Picked
     private String[] list;
@@ -77,10 +94,19 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
     int day = calendar.get(Calendar.DAY_OF_MONTH);
 
 
+    private FusedLocationProviderClient fusedLocationClient;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register_new_patient);
+
+        // Initialize FusedLocationProviderClient.. To get Location
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
 
         mainImageView = findViewById(R.id.mainImageView);
 
@@ -133,6 +159,7 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
         recordDate.setEnabled(false);
 
 
+
 //        // Date Picker For Test Date
 //        recordDate.setOnClickListener(v -> {
 //            DatePickerDialog datePickerDialog = new DatePickerDialog(
@@ -149,8 +176,9 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
 //        });
 
 
-
         // Gender Spinner
+
+
         List<GenderPojo> genderPojoList = new ArrayList<>();
         genderPojoList.add(new GenderPojo(1, "Male"));
         genderPojoList.add(new GenderPojo(2, "Female"));
@@ -174,6 +202,44 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
         BloodGroupSpinnerAdapter bloodGroupSpinnerAdapter = new BloodGroupSpinnerAdapter(this, android.R.layout.simple_spinner_item, bloodGroupPojoList);
         bloodGroupSpinner.setAdapter(bloodGroupSpinnerAdapter);
 
+
+        // Referred By Spinner
+        List<ReferredByPojo> referredByPojoList = new ArrayList<>();
+        referredByPojoList.add(new ReferredByPojo(1, "Aman"));
+        referredByPojoList.add(new ReferredByPojo(2, "Brijesh"));
+        referredByPojoList.add(new ReferredByPojo(3, "Chirag"));
+        referredByPojoList.add(new ReferredByPojo(4, "Deepak"));
+        referredByPojoList.add(new ReferredByPojo(5, "Esha"));
+        referredByPojoList.add(new ReferredByPojo(6, "Farhan"));
+        referredByPojoList.add(new ReferredByPojo(7, "Gaurang"));
+        referredByPojoList.add(new ReferredByPojo(8, "Hemant"));
+        referredByPojoList.add(new ReferredByPojo(9, "Ishaan"));
+        referredByPojoList.add(new ReferredByPojo(10, "Jyoti"));
+
+        // Set Adapter
+        ReferredBySpinnerAdapter ReferredBySpinnerAdapter = new ReferredBySpinnerAdapter(this, android.R.layout.simple_spinner_item, referredByPojoList);
+        referredBySpinner.setAdapter(ReferredBySpinnerAdapter);
+
+
+        // Request Permission if Not Granted
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        } else {
+            getLocation();
+
+            // Print Location
+            if(GLOBAL_LOCATION_STR != null){
+                Log.d("Location", "Location: " + GLOBAL_LOCATION_STR);
+            }
+        }
+
+
+        // Print Location
+        if(GLOBAL_LOCATION_STR != null){
+            Log.d("Location", "Location: " + GLOBAL_LOCATION_STR);
+        }
 
         // DOB
         dob.setOnClickListener(v -> {
@@ -233,7 +299,7 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
             // Show Popup else show error message
             if (testList != null) {
                 // All tests list...., Final Selected Tests List...., Interface Method...
-                showTestsListsDialog(testList, finalSelectionTests ,this);
+                showTestsListsDialog(testList, finalSelectionTests, this);
             } else {
                 CD.showDialog(this, "No Tests Found");
             }
@@ -245,60 +311,60 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
 
         proceedBtn.setOnClickListener(v -> {
 
-            if (name.getText().toString().isEmpty()){
+            if (name.getText().toString().isEmpty()) {
                 CD.showDialog(RegisterNewPatient.this, "Please Enter Name");
                 return;
             }
 
-            if (dob.getText().toString().isEmpty()){
+            if (dob.getText().toString().isEmpty()) {
                 CD.showDialog(RegisterNewPatient.this, "Please Select Date of Birth");
                 return;
             }
 
-            if (mobileNumber.getText().toString().isEmpty()){
+            if (mobileNumber.getText().toString().isEmpty()) {
                 CD.showDialog(RegisterNewPatient.this, "Please Enter Mobile Number");
                 return;
             }
 
-            if (genderSpinner.getSelectedItem().toString().isEmpty()){
+            if (genderSpinner.getSelectedItem().toString().isEmpty()) {
                 CD.showDialog(RegisterNewPatient.this, "Please Select Gender");
                 return;
             }
 
-            if (bloodGroupSpinner.getSelectedItem().toString().isEmpty()){
+            if (bloodGroupSpinner.getSelectedItem().toString().isEmpty()) {
                 CD.showDialog(RegisterNewPatient.this, "Please Select Blood Group");
                 return;
             }
 
-
-            if (finalSelectionTests.isEmpty()){
+            if (finalSelectionTests.isEmpty()) {
                 CD.showDialog(RegisterNewPatient.this, "Please Select Tests");
                 return;
             }
 
-
-
-            if (amount.getText().toString().isEmpty()){
+            if (amount.getText().toString().isEmpty()) {
                 CD.showDialog(RegisterNewPatient.this, "Please Select Tests");
                 return;
             }
 
-            if (receiptNumber.getText().toString().isEmpty()){
+            if (receiptNumber.getText().toString().isEmpty()) {
                 CD.showDialog(RegisterNewPatient.this, "Please Enter Receipt Number");
                 return;
             }
 
-
-
-            if (recordDate.getText().toString().isEmpty()){
+            if (recordDate.getText().toString().isEmpty()) {
                 CD.showDialog(RegisterNewPatient.this, "Please Select Record Date");
                 return;
             }
 
-
-            if (photoFilePath == null){
+            if (photoFilePath == null) {
                 CD.showDialog(RegisterNewPatient.this, "Please select image of the patient");
                 return;
+            }
+
+
+            // Print Location
+            if(GLOBAL_LOCATION_STR != null){
+                Log.d("Location", "Location: " + GLOBAL_LOCATION_STR);
             }
 
             Toast.makeText(this, "Patient Registered Successfully", Toast.LENGTH_SHORT).show();
@@ -308,9 +374,7 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
     }
 
 
-
     // Custom Method Here
-
     private void launchFilePicker() {
         Configurations configs = new Configurations.Builder()
                 .setShowImages(true) // or set other options based on your needs
@@ -378,11 +442,18 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
 
         // Search Functionality
         searchBar.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
                 adapter.filter(s.toString());
             }
-            @Override public void afterTextChanged(Editable s) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         AlertDialog dialog = builder.create();
@@ -428,6 +499,8 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
         showExitConfirmationDialog();
     }
 
+
+
     // Custom Method to Show Toast
     public void showError(String errorMessage) {
         Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
@@ -440,7 +513,6 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
         super.onActivityResult(requestCode, resultCode, data);
 
         if (data != null) {
-
             //  File Picked
             if (requestCode == 987 && resultCode == RESULT_OK) {
                 ArrayList<MediaFile> selectedFiles = data != null ?
@@ -491,8 +563,7 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
                 Log.e("File Picker", "No Data");
             }
 
-
-//          //  Camera Click
+            //  Camera Click
             if (resultCode == Activity.RESULT_OK && requestCode == 1560 && data != null) {
                 if (data.getStringArrayExtra("resultData").length == 0) {
                     CD.showDialog(RegisterNewPatient.this, "Image not Clicked");
@@ -522,8 +593,21 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
 
             }
         }
+    }
 
 
+
+    // Handle permission result
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                getLocation();  // Permission granted, fetch location
+            } else {
+                Log.d("Location", "Permission denied");
+            }
+        }
     }
 
 
@@ -540,6 +624,46 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
 
         amount.setText(String.valueOf("Rs. " + selectedTests.stream().mapToDouble(TestsPojo::getTestCharges).sum()));
         amount.setEnabled(false);
+    }
+
+
+
+//    LOCATION INTERFACE METHODS + Add Class Sample Presenter in Utilities
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
+
+    @Override
+    public void onLocationFailed(int type) {
+
+    }
+
+    @Override
+    public String getText() {
+        return "";
+    }
+
+    @Override
+    public void setText(String text) {
+        GLOBAL_LOCATION_STR = text; // Set location
+        Log.e("Location GPS", text);
+    }
+
+    @Override
+    public void updateProgress(String text) {
+
+    }
+
+    @Override
+    public void dismissProgress() {
+
+    }
+
+
+    @Override
+    public LocationConfiguration getLocationConfiguration() {
+        return null;
     }
 
 

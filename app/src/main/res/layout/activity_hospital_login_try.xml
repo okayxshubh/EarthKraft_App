@@ -144,8 +144,8 @@
                             android:hint="Username"
                             android:maxLines="1"
                             android:singleLine="true"
-                            android:textColor="@color/hospital_red"
-                            android:textColorHint="@color/hospital_red"
+                            android:textColor="@color/navyblue"
+                            android:textColorHint="@color/navyblue"
                             android:textSize="15sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -171,8 +171,8 @@
                             android:imeOptions="actionUnspecified"
                             android:inputType="textPassword"
                             android:singleLine="true"
-                            android:textColor="@color/hospital_red"
-                            android:textColorHint="@color/hospital_red"
+                            android:textColor="@color/navyblue"
+                            android:textColorHint="@color/navyblue"
                             android:textSize="15sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 

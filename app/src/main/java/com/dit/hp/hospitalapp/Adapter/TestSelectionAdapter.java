@@ -61,7 +61,7 @@ public class TestSelectionAdapter extends BaseAdapter {
         }
 
         TestsPojo test = getItem(position);
-        holder.testName.setText(test.getTestName());
+        holder.testName.setText(test.getTestName() + " : Rs. " + test.getTestCharges() + "/-");
 
         // Show checkmark when selected
         holder.imageView.setVisibility(selectedTestIds.contains(test.getTestId()) ? View.VISIBLE : View.INVISIBLE);

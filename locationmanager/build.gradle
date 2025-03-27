@@ -25,12 +25,36 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    //implementation 'com.google.android.gms:play-services-location:21.3.0'
-    implementation 'com.google.android.gms:play-services-location:17.0.0'
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-   // compile 'com.android.support:appcompat-v7:25.3.1'
+
+
+//    // Android X
+////    implementation libs.appcompat.v161
+////    implementation libs.core.ktx
+//
+//
+//
+//    //implementation 'com.google.android.gms:play-services-location:21.3.0'
+//    implementation 'com.google.android.gms:play-services-location:17.0.0'
+//    implementation 'com.android.support:appcompat-v7:28.0.0'
+//   // compile 'com.android.support:appcompat-v7:25.3.1'
+//    implementation 'com.squareup.assertj:assertj-android:1.1.1'
+//    androidTestImplementation'junit:junit:4.12'
+//    androidTestImplementation 'androidx.test:runner:1.6.2'
+//    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+
+
+    // Use latest Google Play Services for location
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
+
+    // Migrate from old support libraries to AndroidX
+    implementation 'androidx.appcompat:appcompat:1.6.1'  // replaces support-v7
+    implementation 'androidx.core:core-ktx:1.13.0'       // replaces support-core-utils
+
+    // AssertJ for Android (remains same, no AndroidX version)
     implementation 'com.squareup.assertj:assertj-android:1.1.1'
-    androidTestImplementation'junit:junit:4.12'
+
+    // Testing dependencies (already AndroidX)
+    androidTestImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test:runner:1.6.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 

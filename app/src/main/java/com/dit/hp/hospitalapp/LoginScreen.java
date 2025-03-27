@@ -78,6 +78,8 @@ public class LoginScreen extends AppCompatActivity {
 
                 Intent intent = new Intent(this, Homescreen.class);
                 startActivity(intent);
+                finish();
+
 
             } else if (customerCareLogin.isChecked()) {
                 // Perform login for customer care login
@@ -85,6 +87,7 @@ public class LoginScreen extends AppCompatActivity {
 
                 Intent intent = new Intent(this, Homescreen.class);
                 startActivity(intent);
+                finish();
 
             } else {
                 CD.showDialog(this, "Something went wrong. Please restart the application and try again.");
