@@ -42,9 +42,9 @@ public class LoginScreen extends AppCompatActivity {
         customerLogin = findViewById(R.id.customerLogin);
         customerCareLogin = findViewById(R.id.customerCareLogin);
 
-        // By Default Custom Login active
-        customerLogin.setChecked(true);
-        customerCareLogin.setChecked(false);
+        // By Default Customer Care Login active
+        customerLogin.setChecked(false);
+        customerCareLogin.setChecked(true);
 
         customerLogin.setOnClickListener(v -> {
             customerLogin.setChecked(true);

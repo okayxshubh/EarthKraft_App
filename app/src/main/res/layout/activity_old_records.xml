@@ -29,13 +29,13 @@
             app:layout_constraintVertical_bias="0.0">
 
             <ImageView
-                android:id="@+id/hrtcBtn"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
                 android:layout_marginStart="16dp"
                 android:background="?attr/selectableItemBackground"
-                android:scaleType="centerCrop"
-                android:src="@drawable/hospital" />
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/logo_clean" />
 
             <TextView
                 android:id="@+id/textView"
@@ -46,26 +46,28 @@
                 android:fontFamily="@font/raleway_semibold"
                 android:gravity="center"
                 android:letterSpacing="0.025"
-                android:text="Register Patient"
-                android:textColor="@color/black"
+                android:text="Old Records"
+                android:textColor="@color/navyblue"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
             <ImageView
-                android:id="@+id/logOutB"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:layout_marginEnd="16dp"
                 android:background="?attr/selectableItemBackground"
                 android:padding="8dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/hp" />
+                android:src="@drawable/hospital" />
         </LinearLayout>
+
 
 
     </RelativeLayout>
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <!--Linear Layout for Main Cards-->
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/body_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -74,27 +76,7 @@
         android:orientation="vertical"
         android:padding="10dp">
 
-        <!--        <LinearLayout-->
-        <!--            android:layout_width="match_parent"-->
-        <!--            android:layout_height="wrap_content"-->
-        <!--            android:layout_marginStart="10dp"-->
-        <!--            android:layout_marginEnd="10dp"-->
-        <!--            android:background="@drawable/search_view_background"-->
-        <!--            android:orientation="horizontal"-->
-        <!--            android:padding="10dp">-->
 
-        <!--            <TextView-->
-        <!--                android:id="@+id/sortTextView"-->
-        <!--                android:layout_width="match_parent"-->
-        <!--                android:layout_height="wrap_content"-->
-        <!--                android:fontFamily="@font/raleway_semibold"-->
-        <!--                android:gravity="center"-->
-        <!--                android:hint="Sort By Bus Type"-->
-        <!--                android:textColor="@color/black"-->
-        <!--                android:textSize="14sp" />-->
-
-
-        <!--        </LinearLayout>-->
 
 
         <LinearLayout
@@ -103,31 +85,30 @@
             android:gravity="center"
             android:orientation="horizontal"
             android:paddingEnd="10dp"
-            android:weightSum="1">
+            android:weightSum="2">
 
             <SearchView
                 android:id="@+id/searchView"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:layout_margin="10dp"
-                android:layout_weight="0.6"
-                android:background="@drawable/customborder_dialog"
+                android:layout_weight="1"
+                android:background="@drawable/round_corner_fields_bg"
                 android:elevation="4dp"
                 android:iconifiedByDefault="false"
-                android:queryHint="Search by patient name"
+                android:queryHint="Search by mobile number"
                 android:textColor="@color/black"
                 android:textColorHint="@color/black" />
 
             <ImageButton
-                android:id="@+id/addBtn"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_weight="0.2"
-                android:background="?attr/selectableItemBackground"
-                android:padding="5dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/add_entity"
-                android:tooltipText="Add" />
+                android:id="@+id/proceedBtn"
+                android:layout_width="100dp"
+                android:layout_height="50dp"
+                android:layout_margin="2dp"
+                android:layout_weight="1"
+                android:background="@drawable/customborder_dialog_green"
+                android:text="Search"
+                android:textColor="@color/white" />
 
         </LinearLayout>
 
@@ -135,13 +116,14 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@drawable/round_corner_grey_bg"
             android:orientation="vertical">
 
             <ScrollView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <!--Add Backgound in this-->
+                <!--Add Background in this-->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recyclerView"
                     android:layout_width="match_parent"
@@ -152,6 +134,10 @@
         </LinearLayout>
 
     </LinearLayout>
+
+
+
+
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -209,8 +195,8 @@
         android:layout_marginBottom="16dp"
         android:fontFamily="@font/raleway_semibold"
         android:gravity="center"
-        android:text="\u00A9 2025 Department of Digital Technologies and Governance"
-        android:textColor="@color/hospital_red"
+        android:text="@string/copyright_text"
+        android:textColor="@color/blue"
         android:textSize="14sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -14,7 +14,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -206,7 +205,6 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
             receiptNumber.setText("");
         });
 
-
         testTV.setOnClickListener(view -> {
 
             // Dummy Test List or Service Call
@@ -246,8 +244,14 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
         });
 
         proceedBtn.setOnClickListener(v -> {
+
             if (name.getText().toString().isEmpty()){
                 CD.showDialog(RegisterNewPatient.this, "Please Enter Name");
+                return;
+            }
+
+            if (dob.getText().toString().isEmpty()){
+                CD.showDialog(RegisterNewPatient.this, "Please Select Date of Birth");
                 return;
             }
 
@@ -255,6 +259,24 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
                 CD.showDialog(RegisterNewPatient.this, "Please Enter Mobile Number");
                 return;
             }
+
+            if (genderSpinner.getSelectedItem().toString().isEmpty()){
+                CD.showDialog(RegisterNewPatient.this, "Please Select Gender");
+                return;
+            }
+
+            if (bloodGroupSpinner.getSelectedItem().toString().isEmpty()){
+                CD.showDialog(RegisterNewPatient.this, "Please Select Blood Group");
+                return;
+            }
+
+
+            if (finalSelectionTests.isEmpty()){
+                CD.showDialog(RegisterNewPatient.this, "Please Select Tests");
+                return;
+            }
+
+
 
             if (amount.getText().toString().isEmpty()){
                 CD.showDialog(RegisterNewPatient.this, "Please Select Tests");
@@ -266,25 +288,13 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
                 return;
             }
 
-            if (dob.getText().toString().isEmpty()){
-                CD.showDialog(RegisterNewPatient.this, "Please Select Date of Birth");
-                return;
-            }
 
-            if (genderSpinner.getSelectedItem().toString().isEmpty()){
-                CD.showDialog(RegisterNewPatient.this, "Please Select Gender");
-                return;
-            }
 
             if (recordDate.getText().toString().isEmpty()){
                 CD.showDialog(RegisterNewPatient.this, "Please Select Record Date");
                 return;
             }
 
-            if (finalSelectionTests.isEmpty()){
-                CD.showDialog(RegisterNewPatient.this, "Please Select Tests");
-                return;
-            }
 
             if (photoFilePath == null){
                 CD.showDialog(RegisterNewPatient.this, "Please select image of the patient");
@@ -464,8 +474,8 @@ public class RegisterNewPatient extends AppCompatActivity implements OnTestSelec
                                 // Attempt to rename the file
                                 File renamedFile = new File(compressedImage.getParent(), compressedImage.getName());
                                 if (compressedImage.renameTo(renamedFile)) {
-                                    Log.d("Compressed Image Rename", renamedFile.getName());
-                                    Log.d("Compressed Image Path", renamedFile.getPath());
+                                    Log.d("Compressed Image Rename: ", renamedFile.getName());
+                                    Log.d("Compressed Image Path: ", renamedFile.getPath());
                                     photoFilePath = renamedFile.getPath();
                                     photoFileName = renamedFile.getName();
                                     mainImageView.setImageBitmap(BitmapFactory.decodeFile(renamedFile.getAbsolutePath()));

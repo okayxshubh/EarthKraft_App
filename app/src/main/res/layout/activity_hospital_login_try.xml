@@ -24,7 +24,7 @@
                 android:paddingTop="10dp"
                 android:paddingLeft="30dp"
                 android:id="@+id/imageView1"
-                android:src="@drawable/hospital"
+                android:src="@drawable/logo_clean"
                 android:padding="30dp"
                 android:layout_width="150dp"
                 android:layout_height="150dp"/>
@@ -42,7 +42,7 @@
                 android:layout_toEndOf="@+id/imageView1"
                 android:layout_toRightOf="@+id/imageView1"
                 android:gravity="center_vertical|left"
-                android:text="Hospital Login"
+                android:text="EarthKraft Login"
                 android:paddingLeft="10dp"/>
 
 
@@ -102,6 +102,7 @@
                             android:gravity="center_vertical|center_horizontal"
                             android:layout_gravity="center_vertical|center_horizontal"
                             android:layout_margin="5dp"
+                            android:visibility="gone"
                             android:textOn="Customer \nLogin"
                             android:textOff="Customer \nLogin"
                             android:background="@drawable/tab_selector"

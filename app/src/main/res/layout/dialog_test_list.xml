@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/customborder_dialog"
+    android:background="@drawable/round_corner_fields_bg"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -19,7 +19,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.8"
-            android:background="@drawable/customborder_dialog"
+            android:background="@drawable/round_corner_fields_bg"
             android:hint="Search.."
             android:padding="10dp"
             android:paddingStart="20dp" />
@@ -41,7 +41,7 @@
         android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="300dp"
-        android:background="@drawable/customborder_dialog"
+        android:background="@drawable/round_corner_fields_bg"
         android:divider="@android:color/darker_gray"
         android:dividerHeight="1dp"
         android:padding="5dp"

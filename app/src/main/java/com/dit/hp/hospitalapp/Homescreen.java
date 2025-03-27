@@ -23,7 +23,6 @@ public class Homescreen extends AppCompatActivity {
     ImageButton profileButton;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,9 +46,10 @@ public class Homescreen extends AppCompatActivity {
                 CD.showDialog(this, "No Internet Connection");
             }
         });
+
         cardView2.setOnClickListener(v -> {
             if (AppStatus.getInstance(Homescreen.this).isOnline()) {
-                Intent intent = new Intent(Homescreen.this, RegisterNewPatient.class);
+                Intent intent = new Intent(Homescreen.this, SearchRecord.class);
                 startActivity(intent);
             } else {
                 CD.showDialog(this, "No Internet Connection");
@@ -57,7 +57,8 @@ public class Homescreen extends AppCompatActivity {
         });
 
         cardView3.setOnClickListener(v -> {
-            CD.showDialog(this, "Under Process..");
+            Intent intent = new Intent(Homescreen.this, AboutUs.class);
+            startActivity(intent);
         });
 
         cardView4.setOnClickListener(v -> {

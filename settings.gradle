@@ -19,8 +19,9 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Hospital App"
+rootProject.name = "EarthKraft App"
 include ':app'
 include ':spinnersearchable'
 include ':easycam'
 include ':filepicker'
+include ':locationmanager'

@@ -1,3 +1,15 @@
 <resources>
-    <string name="app_name">Hospital Management App</string>
+    <string name="app_name">EarthKraft App</string>
+
+
+    <string name="copyright_text">"\u00A9 2025 EarthKraft (V1.0)"</string>
+
+
+    <string name="more_info"><![CDATA[
+        <b>EarthKraft Laboratory</b>&#10;&#10;
+        At EarthKraft Laboratory, we provide comprehensive body tests to assess and monitor overall health. Our services include blood tests, physical exams, urine analysis, and screenings for conditions like diabetes, cardiovascular diseases, and infections.&#10;&#10;
+        With advanced equipment and expert professionals, we deliver accurate results, enabling early intervention and preventive care. Whether for routine check-ups or specific evaluations, EarthKraft Laboratory is dedicated to providing reliable and timely diagnostic services to support your health.
+    ]]></string>
+
+
 </resources>

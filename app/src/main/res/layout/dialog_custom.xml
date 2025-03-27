@@ -1,14 +1,14 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/customborder_dialog"
+    android:background="@drawable/custom_dialog_border_round"
     android:orientation="vertical">
 
     <ImageView
         android:id="@+id/a"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:background="@drawable/top_rounded_green"
+        android:background="@drawable/top_rounded_custom_dialog"
         android:gravity="center"
         android:padding="10dp"
         android:scaleType="fitCenter"
@@ -46,7 +46,7 @@
                         android:gravity="left|center_vertical|center_horizontal"
                         android:padding="12sp"
                         android:text="The quick brown fox jumps over the lazy dog."
-                        android:textColor="@color/green"
+                        android:textColor="@color/black"
                         android:textSize="18sp"/>
                 </LinearLayout>
             </ScrollView>

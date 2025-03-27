@@ -4,7 +4,7 @@ apply plugin: 'com.android.library'
 android {
     namespace 'in.balakraishnan.easycam'
     compileSdkVersion 34
-    buildToolsVersion "29.0.2"
+//    buildToolsVersion "29.0.2"
 
 
     defaultConfig {

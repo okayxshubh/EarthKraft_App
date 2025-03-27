@@ -3,7 +3,7 @@ apply plugin: 'com.android.library'
 android {
     namespace 'com.kushkumardhawan.filepicker'
     compileSdkVersion 29
-    buildToolsVersion '29.0.2'
+//    buildToolsVersion '29.0.2'
     defaultConfig {
         minSdkVersion 28  //29
         targetSdkVersion 34
