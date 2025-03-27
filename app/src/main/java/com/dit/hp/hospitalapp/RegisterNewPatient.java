@@ -1,22 +1,24 @@
 package com.dit.hp.hospitalapp;
 
-import static androidx.core.location.LocationManagerCompat.getCurrentLocation;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -26,9 +28,10 @@ import android.widget.RadioButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.dit.hp.hospitalapp.Adapter.BloodGroupSpinnerAdapter;
 import com.dit.hp.hospitalapp.Adapter.GenderSpinnerAdapter;
@@ -42,15 +45,13 @@ import com.dit.hp.hospitalapp.Presentation.CustomDialog;
 import com.dit.hp.hospitalapp.interfaces.OnTestSelectedListener;
 import com.dit.hp.hospitalapp.utilities.SamplePresenter;
 import com.doi.spinnersearchable.SearchableSpinner;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.kushkumardhawan.filepicker.activity.FilePickerActivity;
 import com.kushkumardhawan.filepicker.config.Configurations;
 import com.kushkumardhawan.filepicker.model.MediaFile;
 import com.kushkumardhawan.locationmanager.base.LocationBaseActivity;
 import com.kushkumardhawan.locationmanager.configuration.LocationConfiguration;
+import com.kushkumardhawan.locationmanager.constants.FailType;
+import com.kushkumardhawan.locationmanager.constants.ProcessType;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -78,6 +79,8 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
     SearchableSpinner genderSpinner, referredBySpinner, bloodGroupSpinner;
     List<TestsPojo> finalSelectionTests = new ArrayList<>();
     String GLOBAL_LOCATION_STR;
+    private ProgressDialog progressDialog;
+
 
     // For Camera Image / Image Picked
     private String[] list;
@@ -93,19 +96,22 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
     int month = calendar.get(Calendar.MONTH);
     int day = calendar.get(Calendar.DAY_OF_MONTH);
 
-
-    private FusedLocationProviderClient fusedLocationClient;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
-
-
+    private SamplePresenter samplePresenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register_new_patient);
 
-        // Initialize FusedLocationProviderClient.. To get Location
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissions();
+        }
+
+
+        samplePresenter = new SamplePresenter(this);
+        getLocation();
 
 
         mainImageView = findViewById(R.id.mainImageView);
@@ -311,6 +317,15 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
 
         proceedBtn.setOnClickListener(v -> {
 
+            getLocation();
+            // Print Location
+            if(GLOBAL_LOCATION_STR != null){
+                Log.d("Location", "Location: " + GLOBAL_LOCATION_STR);
+            } else {
+                Log.d("Location", "Location Not Found");
+            }
+
+
             if (name.getText().toString().isEmpty()) {
                 CD.showDialog(RegisterNewPatient.this, "Please Enter Name");
                 return;
@@ -362,16 +377,13 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
             }
 
 
-            // Print Location
-            if(GLOBAL_LOCATION_STR != null){
-                Log.d("Location", "Location: " + GLOBAL_LOCATION_STR);
-            }
 
             Toast.makeText(this, "Patient Registered Successfully", Toast.LENGTH_SHORT).show();
 
         });
 
     }
+
 
 
     // Custom Method Here
@@ -406,6 +418,30 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
                 .setClearBucket(true)
                 .createCameraBundle());
         startActivityForResult(intent, 1560);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+    private void requestPermissions() {
+        if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                    android. Manifest.permission.INTERNET,
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    android.Manifest.permission.CHANGE_NETWORK_STATE,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                    android.Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+                    android.Manifest.permission.CAMERA,
+                    android.Manifest.permission.VIBRATE,
+                    android.Manifest.permission.SEND_SMS,
+                    android.Manifest.permission.RECEIVE_SMS,
+                    android.Manifest.permission.READ_MEDIA_IMAGES
+
+            }, 0);
+        }
+
     }
 
 
@@ -627,21 +663,57 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
     }
 
 
-
-//    LOCATION INTERFACE METHODS + Add Class Sample Presenter in Utilities
+    /**
+     * Location Interface Methords
+     *
+     * @return
+     */
     @Override
-    public void onLocationChanged(Location location) {
-
+    public LocationConfiguration getLocationConfiguration() {
+        return com.kushkumardhawan.locationmanager.configuration.Configurations.defaultConfiguration("Permission Required !", "GPS needs to be turned on.");
     }
 
     @Override
-    public void onLocationFailed(int type) {
+    public void onLocationChanged(Location location) {
+        samplePresenter.onLocationChanged(location);
+    }
 
+    @Override
+    public void onLocationFailed(@FailType int type) {
+        samplePresenter.onLocationFailed(type);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (getLocationManager().isWaitingForLocation()
+                && !getLocationManager().isAnyDialogShowing()) {
+            displayProgress();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        dismissProgress();
+    }
+
+    private void displayProgress() {
+        if (progressDialog == null) {
+            progressDialog = new ProgressDialog(this);
+            progressDialog.getWindow().addFlags(Window.FEATURE_NO_TITLE);
+            progressDialog.setMessage("Getting location...");
+        }
+
+        if (!progressDialog.isShowing()) {
+            progressDialog.show();
+        }
     }
 
     @Override
     public String getText() {
-        return "";
+        return "";  //locationText.getText().toString()
     }
 
     @Override
@@ -652,18 +724,37 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
 
     @Override
     public void updateProgress(String text) {
-
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.setMessage(text);
+        }
     }
 
     @Override
     public void dismissProgress() {
-
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
+        }
     }
 
+    @Override
+    public void onProcessTypeChanged(@ProcessType int processType) {
+        samplePresenter.onProcessTypeChanged(processType);
+    }
 
     @Override
-    public LocationConfiguration getLocationConfiguration() {
-        return null;
+    protected void onDestroy() {
+        super.onDestroy();
+        samplePresenter.destroy();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
 
