@@ -1,4 +1,5 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -128,10 +129,11 @@
                         android:layout_gravity="center_vertical"
                         android:gravity="start"
                         android:fontFamily="@font/raleway_semibold"
-                        android:textColor="@color/black"
-                        android:textColorHint="@color/black"
-                        app:passwordToggleEnabled="false">
-
+                        android:textColorHint="@color/blue"
+                        app:passwordToggleEnabled="false"
+                        app:hintTextColor="@color/green"
+                        app:boxStrokeColor="@color/green"
+                        app:boxStrokeWidth="2dp">
 
                         <EditText
                             android:id="@+id/username"
@@ -144,8 +146,8 @@
                             android:hint="Username"
                             android:maxLines="1"
                             android:singleLine="true"
-                            android:textColor="@color/navyblue"
-                            android:textColorHint="@color/navyblue"
+                            android:textColor="@color/blue"
+                            android:textColorHint="@color/blue"
                             android:textSize="15sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -155,9 +157,11 @@
                         android:layout_gravity="center_vertical"
                         android:gravity="start"
                         android:fontFamily="@font/raleway_semibold"
-                        android:textColor="@color/black"
-                        android:textColorHint="@color/black"
-                        app:passwordToggleEnabled="true">
+                        android:textColorHint="@color/blue"
+                        app:passwordToggleEnabled="true"
+                        app:hintTextColor="@color/green"
+                        app:boxStrokeColor="@color/green"
+                        app:boxStrokeWidth="2dp">
 
                         <EditText
                             android:id="@+id/password"
@@ -167,14 +171,15 @@
                             android:layout_marginEnd="10dp"
                             android:layout_marginBottom="10dp"
                             android:fontFamily="@font/raleway_semibold"
-                            android:hint="Enter  Password"
+                            android:hint="Enter Password"
                             android:imeOptions="actionUnspecified"
                             android:inputType="textPassword"
                             android:singleLine="true"
-                            android:textColor="@color/navyblue"
-                            android:textColorHint="@color/navyblue"
+                            android:textColor="@color/blue"
+                            android:textColorHint="@color/blue"
                             android:textSize="15sp" />
                     </com.google.android.material.textfield.TextInputLayout>
+
 
 
 

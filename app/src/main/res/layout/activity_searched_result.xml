@@ -1,0 +1,95 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/custom_dialog_border_round"
+    android:padding="10dp"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/namex"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="5dp"
+        android:gravity="center_horizontal"
+        android:text="Generate Id Card"
+        android:visibility="gone"
+        android:textColor="@color/blue"
+        android:textSize="22sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/namex"
+        android:orientation="vertical">
+
+        <!-- ListView Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/top_rounded_custom_dialog"
+                android:gravity="center"
+                android:padding="10dp"
+                android:text="Records Found"
+                android:textColor="@color/white"
+                android:textSize="15sp" />
+
+<!--            <SearchView-->
+<!--                android:id="@+id/searchView"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="50dp"-->
+<!--                android:layout_margin="10dp"-->
+<!--                android:background="@drawable/customborder_dialog"-->
+<!--                android:elevation="4dp"-->
+<!--                android:iconifiedByDefault="false"-->
+<!--                android:queryHint="Search in results"-->
+<!--                android:textColor="@color/black" />-->
+
+            <ListView
+                android:id="@+id/resultListView"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"/>
+        </LinearLayout>
+
+        <!-- Buttons Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/back"
+                android:layout_width="fill_parent"
+                android:layout_height="40dp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginRight="2dp"
+                android:layout_weight="1"
+                android:background="@drawable/customborder_dialog_red"
+                android:gravity="center_vertical|center_horizontal"
+                android:text="Back"
+                android:textColor="#ffffffff" />
+
+<!--            <Button-->
+<!--                android:id="@+id/verify"-->
+<!--                android:layout_width="fill_parent"-->
+<!--                android:layout_height="40dp"-->
+<!--                android:layout_centerHorizontal="true"-->
+<!--                android:layout_marginLeft="2dp"-->
+<!--                android:layout_weight="1"-->
+<!--                android:background="@drawable/customborder_dialog_green"-->
+<!--                android:gravity="center_vertical|center_horizontal"-->
+<!--                android:text="Verify"-->
+<!--                android:textColor="#ffffffff" />-->
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>

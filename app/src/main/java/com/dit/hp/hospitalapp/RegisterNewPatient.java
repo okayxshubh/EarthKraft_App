@@ -111,7 +111,19 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
 
 
         samplePresenter = new SamplePresenter(this);
-        getLocation();
+
+        // Request Permission & Get Location
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        } else {
+            // Get Location and Print Location
+            getLocation();
+            if(GLOBAL_LOCATION_STR != null){
+                Log.d("Location", "Location: " + GLOBAL_LOCATION_STR);
+            }
+        }
 
 
         mainImageView = findViewById(R.id.mainImageView);
@@ -227,21 +239,6 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
         referredBySpinner.setAdapter(ReferredBySpinnerAdapter);
 
 
-        // Request Permission if Not Granted
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
-        } else {
-            getLocation();
-
-            // Print Location
-            if(GLOBAL_LOCATION_STR != null){
-                Log.d("Location", "Location: " + GLOBAL_LOCATION_STR);
-            }
-        }
-
-
         // Print Location
         if(GLOBAL_LOCATION_STR != null){
             Log.d("Location", "Location: " + GLOBAL_LOCATION_STR);
@@ -317,14 +314,12 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
 
         proceedBtn.setOnClickListener(v -> {
 
-            getLocation();
             // Print Location
             if(GLOBAL_LOCATION_STR != null){
                 Log.d("Location", "Location: " + GLOBAL_LOCATION_STR);
             } else {
                 Log.d("Location", "Location Not Found");
             }
-
 
             if (name.getText().toString().isEmpty()) {
                 CD.showDialog(RegisterNewPatient.this, "Please Enter Name");
@@ -361,11 +356,6 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
                 return;
             }
 
-            if (receiptNumber.getText().toString().isEmpty()) {
-                CD.showDialog(RegisterNewPatient.this, "Please Enter Receipt Number");
-                return;
-            }
-
             if (recordDate.getText().toString().isEmpty()) {
                 CD.showDialog(RegisterNewPatient.this, "Please Select Record Date");
                 return;
@@ -374,6 +364,18 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
             if (photoFilePath == null) {
                 CD.showDialog(RegisterNewPatient.this, "Please select image of the patient");
                 return;
+            }
+
+
+            if(onlineRadioBtn.isChecked()){
+                // No Receipt Number required
+                receiptNoLayout.setVisibility(View.GONE);
+                receiptNumber.setText("");
+            } else if(offlineRadioBtn.isChecked()){
+                if (receiptNumber.getText().toString().isEmpty()) {
+                    CD.showDialog(RegisterNewPatient.this, "Please Enter Receipt Number");
+                    return;
+                }
             }
 
 
@@ -528,6 +530,8 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
         dialog.show();
     }
 
+
+
     // Back Swipe
     @SuppressLint("MissingSuperCall")
     @Override
@@ -544,15 +548,15 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
 
 
     // ON ACTIVITY RESULT
+// ON ACTIVITY RESULT
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (data != null) {
-            //  File Picked
+            // File Picked
             if (requestCode == 987 && resultCode == RESULT_OK) {
-                ArrayList<MediaFile> selectedFiles = data != null ?
-                        data.getParcelableArrayListExtra(FilePickerActivity.MEDIA_FILES) : null;
+                ArrayList<MediaFile> selectedFiles = data.getParcelableArrayListExtra(FilePickerActivity.MEDIA_FILES);
 
                 if (selectedFiles == null || selectedFiles.isEmpty()) {
                     CD.showDialog(RegisterNewPatient.this, "No Image Selected");
@@ -584,8 +588,11 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
                                 if (compressedImage.renameTo(renamedFile)) {
                                     Log.d("Compressed Image Rename: ", renamedFile.getName());
                                     Log.d("Compressed Image Path: ", renamedFile.getPath());
+
+                                    // ✅ Set the photo file path
                                     photoFilePath = renamedFile.getPath();
                                     photoFileName = renamedFile.getName();
+
                                     mainImageView.setImageBitmap(BitmapFactory.decodeFile(renamedFile.getAbsolutePath()));
                                     mainImageView.setPadding(5, 5, 5, 5);
                                     Toast.makeText(getApplicationContext(), "One Media Attached.", Toast.LENGTH_SHORT).show();
@@ -594,18 +601,15 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
                                 }
                             }
                         }, throwable -> showError(throwable.getMessage()));
-
-            } else {
-                Log.e("File Picker", "No Data");
             }
 
-            //  Camera Click
+            // Camera Click Handling
             if (resultCode == Activity.RESULT_OK && requestCode == 1560 && data != null) {
                 if (data.getStringArrayExtra("resultData").length == 0) {
                     CD.showDialog(RegisterNewPatient.this, "Image not Clicked");
                 } else {
                     list = data.getStringArrayExtra("resultData");
-                    File imgFile = new File(new File(list[0]).getPath());
+                    File imgFile = new File(list[0]);  // Directly get file
                     actualImage = new File(imgFile.getPath());
 
                     Disposable compressedImage1 = new Compressor(this)
@@ -617,19 +621,23 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
                                         compressedImage = file;
                                         if (compressedImage != null) {
                                             Log.d("Compressed Image", compressedImage.getPath());
+
+                                            // ✅ Set the photo file path
+                                            photoFilePath = compressedImage.getPath();
+                                            photoFileName = compressedImage.getName();
+
                                             mainImageView.setImageBitmap(BitmapFactory.decodeFile(compressedImage.getAbsolutePath()));
                                             mainImageView.setPadding(5, 5, 5, 5);
-                                            Toast.makeText(getApplicationContext(), "One Media Attached.", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(getApplicationContext(), "One Image Clicked.", Toast.LENGTH_SHORT).show();
                                         }
                                     },
                                     throwable -> Log.e("ERROR", throwable.getMessage())
                             );
                 }
-
-
             }
         }
     }
+
 
 
 

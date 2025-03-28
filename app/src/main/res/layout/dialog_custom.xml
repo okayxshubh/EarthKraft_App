@@ -45,8 +45,9 @@
                         android:layout_height="wrap_content"
                         android:gravity="left|center_vertical|center_horizontal"
                         android:padding="12sp"
+                        android:textStyle="bold"
                         android:text="The quick brown fox jumps over the lazy dog."
-                        android:textColor="@color/black"
+                        android:textColor="@color/blue"
                         android:textSize="18sp"/>
                 </LinearLayout>
             </ScrollView>
@@ -72,7 +73,7 @@
                     android:id="@+id/dialog_ok"
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
-                    android:background="@drawable/customborder_dialog_green"
+                    android:background="@drawable/customborder_dialog_blue"
                     android:gravity="center_vertical|center_horizontal"
                     android:text="OK"
                     android:textColor="#FFFFFFFF" />
