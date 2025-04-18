@@ -44,7 +44,7 @@ dependencies {
 
 
     // External Lib for Location
-    implementation libs.play.services.location
+//    implementation libs.play.services.location
 
 
 

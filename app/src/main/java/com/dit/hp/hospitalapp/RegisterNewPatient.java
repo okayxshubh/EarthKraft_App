@@ -336,15 +336,6 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
                 return;
             }
 
-            if (genderSpinner.getSelectedItem().toString().isEmpty()) {
-                CD.showDialog(RegisterNewPatient.this, "Please Select Gender");
-                return;
-            }
-
-            if (bloodGroupSpinner.getSelectedItem().toString().isEmpty()) {
-                CD.showDialog(RegisterNewPatient.this, "Please Select Blood Group");
-                return;
-            }
 
             if (finalSelectionTests.isEmpty()) {
                 CD.showDialog(RegisterNewPatient.this, "Please Select Tests");
