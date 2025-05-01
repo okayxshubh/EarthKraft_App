@@ -5,18 +5,22 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
 import com.dit.hp.hospitalapp.Presentation.CustomDialog;
 import com.dit.hp.hospitalapp.utilities.AppStatus;
+import com.dit.hp.hospitalapp.utilities.Preferences;
 
 public class Homescreen extends AppCompatActivity {
 
     CustomDialog CD = new CustomDialog();
+    TextView usernameTV, roleTV, welcomeTV;
 
     CardView cardView1, cardView2, cardView3, cardView4;
     CardView bottomCard;
@@ -36,9 +40,23 @@ public class Homescreen extends AppCompatActivity {
         profileButton = findViewById(R.id.profileB);
         bottomCard = findViewById(R.id.bottomCard);
 
+        welcomeTV = findViewById(R.id.headTV);
+        usernameTV = findViewById(R.id.usernameTV);
+        roleTV = findViewById(R.id.roleTV);
+
+
+        // Load saved preferences at the very beginning
+        Preferences.getInstance().loadPreferences(this);
+        reloadUserDetails();
 
 
         cardView1.setOnClickListener(v -> {
+
+            if (!isAuthorizedUser()) {
+                CD.showDialog(Homescreen.this, "You are not authorized to access this feature.");
+                return;
+            }
+
             if (AppStatus.getInstance(Homescreen.this).isOnline()) {
                 Intent intent = new Intent(Homescreen.this, RegisterNewPatient.class);
                 startActivity(intent);
@@ -48,6 +66,11 @@ public class Homescreen extends AppCompatActivity {
         });
 
         cardView2.setOnClickListener(v -> {
+            if (!isAuthorizedUser()) {
+                CD.showDialog(Homescreen.this, "You are not authorized to access this feature.");
+                return;
+            }
+
             if (AppStatus.getInstance(Homescreen.this).isOnline()) {
                 Intent intent = new Intent(Homescreen.this, SearchRecord.class);
                 startActivity(intent);
@@ -57,12 +80,13 @@ public class Homescreen extends AppCompatActivity {
         });
 
         cardView3.setOnClickListener(v -> {
+
             Intent intent = new Intent(Homescreen.this, AboutUs.class);
             startActivity(intent);
         });
 
         cardView4.setOnClickListener(v -> {
-            CD.showDialog(this, "Under Process..");
+            CD.showDialog(this, "Coming Soon..");
         });
 
         profileButton.setOnClickListener(v -> {
@@ -79,6 +103,35 @@ public class Homescreen extends AppCompatActivity {
             });
             popupMenu.show();
         });
+
+
+
+    }
+
+
+    private boolean isAuthorizedUser() {
+        int roleId = Preferences.getInstance().roleId;
+
+        String roleName = Preferences.getInstance().roleName;
+        return (roleId == 1 && roleName.equalsIgnoreCase("Super Admin")) ||
+                (roleId == 2 && roleName.equalsIgnoreCase("Admin")) ||
+                (roleId == 8 && roleName.equalsIgnoreCase("Receptionist"));
+    }
+
+
+    private void reloadUserDetails() {
+        // Welcome Message
+        String completeName = (Preferences.getInstance().firstName != null && !Preferences.getInstance().firstName.isEmpty())
+                ? Preferences.getInstance().firstName + " " + (Preferences.getInstance().lastName != null ? Preferences.getInstance().lastName : "")
+                : "Guest";
+        welcomeTV.setText("Welcome " + completeName + " !");
+
+        String username = Preferences.getInstance().userName;
+        usernameTV.setText(username != null && !username.isEmpty() ? "Username: " + username : "Username: No Username Available");
+
+        // Role
+        String roleName = Preferences.getInstance().roleName;
+        roleTV.setText(roleName != null && !roleName.isEmpty() ? "Role: " + roleName : "Role: No Role Available");
     }
 
 
@@ -93,11 +146,11 @@ public class Homescreen extends AppCompatActivity {
                         startActivity(intent);
                         Homescreen.this.finish();
 
-//                        // Clear
-//                        SharedPreferences preferences = getSharedPreferences("com.dit.himachal.hrtc.app", Context.MODE_PRIVATE);
-//                        SharedPreferences.Editor editor = preferences.edit();
-//                        editor.clear(); // This will remove all preferences
-//                        editor.apply(); // or editor.commit();
+                        // Clear
+                        SharedPreferences preferences = getSharedPreferences("com.dit.hp.ekraft", Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.clear(); // This will remove all preferences
+                        editor.apply(); // or editor.commit();
 
                     }
                 })
@@ -109,6 +162,15 @@ public class Homescreen extends AppCompatActivity {
         android.app.AlertDialog dialog = builder.create();
         dialog.show();
     }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Preferences.getInstance().loadPreferences(this); // reload from SharedPreferences
+        reloadUserDetails(); // update UI
+    }
+
 
 
 }

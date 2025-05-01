@@ -51,20 +51,29 @@ public class TestSelectionAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
         if (convertView == null) {
-            convertView = inflater.inflate(R.layout.list_item_test, parent, false);
+            convertView = inflater.inflate(R.layout.medical_tests_card_view, parent, false);
             holder = new ViewHolder();
-            holder.imageView = convertView.findViewById(R.id.imageViewCheck);
-            holder.testName = convertView.findViewById(R.id.testName);
+
+            holder.imageView = convertView.findViewById(R.id.imageViewTests);
+            holder.headTV = convertView.findViewById(R.id.head_tv);
+            holder.secondTV = convertView.findViewById(R.id.second_tv);
+            holder.thirdTV = convertView.findViewById(R.id.third_tv);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
 
         TestsPojo test = getItem(position);
-        holder.testName.setText(test.getTestName() + " : Rs. " + test.getTestCharges() + "/-");
+        holder.headTV.setText(test.getTestName());
+        holder.secondTV.setText(test.getTestsTypePojo().getTestTypeName() + " : Rs. " + test.getTestprice() + "/-");
+        holder.thirdTV.setText(test.getTestDescription());
 
         // Show checkmark when selected
-        holder.imageView.setVisibility(selectedTestIds.contains(test.getTestId()) ? View.VISIBLE : View.INVISIBLE);
+        if (selectedTestIds.contains(test.getTestId())) {
+            holder.imageView.setImageResource(R.drawable.check);
+        } else {
+            holder.imageView.setImageResource(R.drawable.medical_test);
+        }
 
         return convertView;
     }
@@ -110,6 +119,8 @@ public class TestSelectionAdapter extends BaseAdapter {
 
     static class ViewHolder {
         ImageView imageView;
-        TextView testName;
+        TextView headTV;
+        TextView secondTV;
+        TextView thirdTV;
     }
 }

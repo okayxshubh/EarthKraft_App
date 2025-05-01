@@ -4,19 +4,16 @@ import java.io.Serializable;
 
 // GenderPojo
 public class TestsPojo implements Serializable {
+
     private int testId;
-    private int testCharges;
     private String testName;
 
-    public TestsPojo() {
+    private String testDescription;
+    private String normalrange;
+    private String testprice;
 
-    }
+   private TestsTypePojo testsTypePojo;
 
-    public TestsPojo(int testId, int testCharges, String testName) {
-        this.testId = testId;
-        this.testCharges = testCharges;
-        this.testName = testName;
-    }
 
     public int getTestId() {
         return testId;
@@ -24,14 +21,6 @@ public class TestsPojo implements Serializable {
 
     public void setTestId(int testId) {
         this.testId = testId;
-    }
-
-    public int getTestCharges() {
-        return testCharges;
-    }
-
-    public void setTestCharges(int testCharges) {
-        this.testCharges = testCharges;
     }
 
     public String getTestName() {
@@ -42,8 +31,41 @@ public class TestsPojo implements Serializable {
         this.testName = testName;
     }
 
+    public String getTestDescription() {
+        return testDescription;
+    }
+
+    public void setTestDescription(String testDescription) {
+        this.testDescription = testDescription;
+    }
+
+    public String getNormalrange() {
+        return normalrange;
+    }
+
+    public void setNormalrange(String normalrange) {
+        this.normalrange = normalrange;
+    }
+
+    public String getTestprice() {
+        return testprice;
+    }
+
+    public void setTestprice(String testprice) {
+        this.testprice = testprice;
+    }
+
+    public TestsTypePojo getTestsTypePojo() {
+        return testsTypePojo;
+    }
+
+    public void setTestsTypePojo(TestsTypePojo testsTypePojo) {
+        this.testsTypePojo = testsTypePojo;
+    }
+
     @Override
     public String toString() {
-        return testName + " : " + "Rs. " + testCharges + "/-";
+        return testName + " : " + "Rs. " + testprice + "/-";
     }
+
 }

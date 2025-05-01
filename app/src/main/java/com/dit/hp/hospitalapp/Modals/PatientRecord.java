@@ -1,120 +1,73 @@
 package com.dit.hp.hospitalapp.Modals;
 
+import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.Serializable;
 import java.util.List;
 
 // GenderPojo
 public class PatientRecord implements Serializable {
 
-    private String recordDate;
-    private String patientName;
-    private String dateOfBirth;
-    private String mobileNumber;
-    private String gender;
-    private String bloodGroup;
-    private List<TestsPojo> testsList;
-    private String referredBy;
-    private String amountDue;
-    private String paymentType;
+    private String firstName;
+    private String lastName;
+
+    private String patientAge;
+    private String patientMobile;
+
+    private String sampleDate;
     private String receiptNumber;
+
+    private String gender;
+    private String referredBy;
+    private String registrationMode;
+
+    private List<TestsPojo> testList;
+
 
     public PatientRecord() {
     }
 
-    // All args const.
-    public PatientRecord(String recordDate, String patientName, String dateOfBirth, String mobileNumber, String gender, String bloodGroup, List<TestsPojo> testsList, String referredBy, String amountDue, String paymentType, String receiptNumber) {
-        this.recordDate = recordDate;
-        this.patientName = patientName;
-        this.dateOfBirth = dateOfBirth;
-        this.mobileNumber = mobileNumber;
-        this.gender = gender;
-        this.bloodGroup = bloodGroup;
-        this.testsList = testsList;
-        this.referredBy = referredBy;
-        this.amountDue = amountDue;
-        this.paymentType = paymentType;
-        this.receiptNumber = receiptNumber;
+    public String getFirstName() {
+        return firstName;
     }
 
-
-    public String getRecordDate() {
-        return recordDate;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
-    public void setRecordDate(String recordDate) {
-        this.recordDate = recordDate;
+    public String getLastName() {
+        return lastName;
     }
 
-    public String getPatientName() {
-        return patientName;
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
-    public void setPatientName(String patientName) {
-        this.patientName = patientName;
+    public String getPatientAge() {
+        return patientAge;
     }
 
-    public String getDateOfBirth() {
-        return dateOfBirth;
+    public void setPatientAge(String patientAge) {
+        this.patientAge = patientAge;
     }
 
-    public void setDateOfBirth(String dateOfBirth) {
-        this.dateOfBirth = dateOfBirth;
+    public String getPatientMobile() {
+        return patientMobile;
     }
 
-    public String getMobileNumber() {
-        return mobileNumber;
+    public void setPatientMobile(String patientMobile) {
+        this.patientMobile = patientMobile;
     }
 
-    public void setMobileNumber(String mobileNumber) {
-        this.mobileNumber = mobileNumber;
+    public String getSampleDate() {
+        return sampleDate;
     }
 
-    public String getGender() {
-        return gender;
-    }
-
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
-
-    public String getBloodGroup() {
-        return bloodGroup;
-    }
-
-    public void setBloodGroup(String bloodGroup) {
-        this.bloodGroup = bloodGroup;
-    }
-
-    public List<TestsPojo> getTestsList() {
-        return testsList;
-    }
-
-    public void setTestsList(List<TestsPojo> testsList) {
-        this.testsList = testsList;
-    }
-
-    public String getReferredBy() {
-        return referredBy;
-    }
-
-    public void setReferredBy(String referredBy) {
-        this.referredBy = referredBy;
-    }
-
-    public String getAmountDue() {
-        return amountDue;
-    }
-
-    public void setAmountDue(String amountDue) {
-        this.amountDue = amountDue;
-    }
-
-    public String getPaymentType() {
-        return paymentType;
-    }
-
-    public void setPaymentType(String paymentType) {
-        this.paymentType = paymentType;
+    public void setSampleDate(String sampleDate) {
+        this.sampleDate = sampleDate;
     }
 
     public String getReceiptNumber() {
@@ -125,20 +78,72 @@ public class PatientRecord implements Serializable {
         this.receiptNumber = receiptNumber;
     }
 
-    @Override
-    public String toString() {
-        return "PatientRecord{" +
-                "recordDate='" + recordDate + '\'' +
-                ", patientName='" + patientName + '\'' +
-                ", dateOfBirth='" + dateOfBirth + '\'' +
-                ", mobileNumber='" + mobileNumber + '\'' +
-                ", gender='" + gender + '\'' +
-                ", bloodGroup='" + bloodGroup + '\'' +
-                ", testsList=" + testsList +
-                ", referredBy='" + referredBy + '\'' +
-                ", amountDue='" + amountDue + '\'' +
-                ", paymentType='" + paymentType + '\'' +
-                ", receiptNumber='" + receiptNumber + '\'' +
-                '}';
+    public String getGender() {
+        return gender;
     }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getReferredBy() {
+        return referredBy;
+    }
+
+    public void setReferredBy(String referredBy) {
+        this.referredBy = referredBy;
+    }
+
+    public String getRegistrationMode() {
+        return registrationMode;
+    }
+
+    public void setRegistrationMode(String registrationMode) {
+        this.registrationMode = registrationMode;
+    }
+
+    public List<TestsPojo> getTestList() {
+        return testList;
+    }
+
+    public void setTestList(List<TestsPojo> testList) {
+        this.testList = testList;
+    }
+
+
+    public JSONObject getJsonToSave() {
+        JSONObject json = new JSONObject();
+        JSONArray testArray = new JSONArray();
+
+        try {
+            json.put("firstName", firstName);
+            json.put("lastname", lastName);
+            json.put("patientAge", patientAge);
+            json.put("patientMobile", patientMobile);
+            json.put("sampleDate", sampleDate);
+            json.put("receiptNumber", receiptNumber);
+            json.put("gender", gender);
+            json.put("referredBy", referredBy);
+            json.put("registrationMode", registrationMode);
+
+            if (testList != null) {
+                for (TestsPojo test : testList) {
+                    JSONObject testObj = new JSONObject();
+                    testObj.put("testName", test.getTestName());
+                    testObj.put("testId", test.getTestId());
+                    testArray.put(testObj);
+                }
+            }
+
+            json.put("tests", testArray);
+
+        } catch (Exception e) {
+            Log.e("PatientRecord", "JsonToSave Issue: " + e.getMessage());
+        }
+
+        return json;
+    }
+
+
+
 }

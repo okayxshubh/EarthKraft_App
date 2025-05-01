@@ -28,9 +28,9 @@
             android:id="@+id/clear"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.2"
+            android:layout_weight="0.4"
             android:background="@drawable/customborder_dialog_red"
-            android:text="Clear"
+            android:text="Clear All"
             android:textColor="@color/white"
             android:layout_marginStart="8dp"/>
     </LinearLayout>
@@ -41,11 +41,15 @@
         android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="300dp"
+        android:layout_margin="8dp"
+        android:padding="8dp"
         android:background="@drawable/round_corner_fields_bg"
-        android:divider="@android:color/darker_gray"
-        android:dividerHeight="1dp"
-        android:padding="5dp"
-        tools:listitem="@layout/list_item_test" />
+        android:divider="@android:color/transparent"
+        android:dividerHeight="8dp"
+        android:elevation="4dp"
+        android:clipToPadding="false"
+        tools:listitem="@layout/medical_tests_card_view" />
+
 
     <LinearLayout
         android:layout_width="match_parent"

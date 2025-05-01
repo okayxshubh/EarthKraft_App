@@ -1,15 +1,12 @@
 package com.dit.hp.hospitalapp;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
@@ -19,12 +16,11 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RadioButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -33,62 +29,73 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.dit.hp.hospitalapp.Adapter.BloodGroupSpinnerAdapter;
 import com.dit.hp.hospitalapp.Adapter.GenderSpinnerAdapter;
 import com.dit.hp.hospitalapp.Adapter.ReferredBySpinnerAdapter;
+import com.dit.hp.hospitalapp.Adapter.RegistrationModesSpinnerAdapter;
 import com.dit.hp.hospitalapp.Adapter.TestSelectionAdapter;
-import com.dit.hp.hospitalapp.Modals.BloodGroupPojo;
 import com.dit.hp.hospitalapp.Modals.GenderPojo;
-import com.dit.hp.hospitalapp.Modals.ReferredByPojo;
+import com.dit.hp.hospitalapp.Modals.PatientRecord;
+import com.dit.hp.hospitalapp.Modals.ReferredBy;
+import com.dit.hp.hospitalapp.Modals.RegistrationMode;
+import com.dit.hp.hospitalapp.Modals.ResponsePojoGet;
+import com.dit.hp.hospitalapp.Modals.SuccessResponse;
 import com.dit.hp.hospitalapp.Modals.TestsPojo;
+import com.dit.hp.hospitalapp.Modals.UploadObject;
 import com.dit.hp.hospitalapp.Presentation.CustomDialog;
+import com.dit.hp.hospitalapp.enums.TaskType;
+import com.dit.hp.hospitalapp.interfaces.AsyncTaskListenerObject;
 import com.dit.hp.hospitalapp.interfaces.OnTestSelectedListener;
+import com.dit.hp.hospitalapp.network.Generic_Async_Post;
+import com.dit.hp.hospitalapp.network.Generic_Async_Get;
+import com.dit.hp.hospitalapp.utilities.AppStatus;
+import com.dit.hp.hospitalapp.utilities.Econstants;
+import com.dit.hp.hospitalapp.utilities.EncryptDecrypt;
+import com.dit.hp.hospitalapp.utilities.JsonParse;
+import com.dit.hp.hospitalapp.utilities.Preferences;
 import com.dit.hp.hospitalapp.utilities.SamplePresenter;
 import com.doi.spinnersearchable.SearchableSpinner;
-import com.kushkumardhawan.filepicker.activity.FilePickerActivity;
-import com.kushkumardhawan.filepicker.config.Configurations;
-import com.kushkumardhawan.filepicker.model.MediaFile;
 import com.kushkumardhawan.locationmanager.base.LocationBaseActivity;
+import com.kushkumardhawan.locationmanager.configuration.Configurations;
 import com.kushkumardhawan.locationmanager.configuration.LocationConfiguration;
 import com.kushkumardhawan.locationmanager.constants.FailType;
 import com.kushkumardhawan.locationmanager.constants.ProcessType;
+
+import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import id.zelory.compressor.Compressor;
-import in.balakrishnan.easycam.CameraBundleBuilder;
-import in.balakrishnan.easycam.CameraControllerActivity;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
+import javax.net.ssl.HttpsURLConnection;
 
-public class RegisterNewPatient extends  LocationBaseActivity implements SamplePresenter.SampleView, OnTestSelectedListener {
+
+public class RegisterNewPatient extends LocationBaseActivity implements SamplePresenter.SampleView, OnTestSelectedListener, AsyncTaskListenerObject {
 
     CustomDialog CD = new CustomDialog();
     LinearLayout receiptNoLayout;
     Button proceedBtn, backBtn;
-    EditText name, dob, recordDate, mobileNumber, amount, receiptNumber, testTV;
-
-    RadioButton onlineRadioBtn, offlineRadioBtn;
-    ImageView mainImageView;
+    EditText firstName, lastName, age, recordDate, mobileNumber, amount, receiptNumber, testTV;
 
     // Spinners + Adapters
-    SearchableSpinner genderSpinner, referredBySpinner, bloodGroupSpinner;
+    SearchableSpinner genderSpinner, registrationModeSpinner, referredBySpinner;
+    GenderSpinnerAdapter genderSpinnerAdapter;
+    RegistrationModesSpinnerAdapter registrationModesSpinnerAdapter;
+    ReferredBySpinnerAdapter referredBySpinnerAdapter;
+
+    // Spinner Selected Items
+    GenderPojo selectedGender;
+    RegistrationMode selectedRegistrationMode;
+    ReferredBy selectedReferredBy;
+
     List<TestsPojo> finalSelectionTests = new ArrayList<>();
     String GLOBAL_LOCATION_STR;
     private ProgressDialog progressDialog;
-
 
     // For Camera Image / Image Picked
     private String[] list;
     private File actualImage;
     private File compressedImage = null;
-    private File renamedFile = null;
-
-    private String photoFilePath, photoFileName;
 
     // Global Current Dates to Preselect + Load with current dates
     Calendar calendar = Calendar.getInstance();
@@ -104,79 +111,48 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register_new_patient);
 
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissions();
         }
 
-
         samplePresenter = new SamplePresenter(this);
 
         // Request Permission & Get Location
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         } else {
             // Get Location and Print Location
             getLocation();
-            if(GLOBAL_LOCATION_STR != null){
+            if (GLOBAL_LOCATION_STR != null) {
                 Log.d("Location", "Location: " + GLOBAL_LOCATION_STR);
             }
         }
 
-
-        mainImageView = findViewById(R.id.mainImageView);
-
-        name = findViewById(R.id.name);
-        dob = findViewById(R.id.dob);
+        firstName = findViewById(R.id.firstName);
+        lastName = findViewById(R.id.lastName);
+        age = findViewById(R.id.age);
         recordDate = findViewById(R.id.recordDate);
         mobileNumber = findViewById(R.id.mobileNumber);
         amount = findViewById(R.id.amount);
-
         testTV = findViewById(R.id.testTV);
 
         proceedBtn = findViewById(R.id.proceedBtn);
         backBtn = findViewById(R.id.backBtn);
 
-        onlineRadioBtn = findViewById(R.id.onlineRadioButton);
-        offlineRadioBtn = findViewById(R.id.offlineRadioButton);
-
         receiptNoLayout = findViewById(R.id.receiptNoLayout);
-        receiptNoLayout.setVisibility(View.GONE);
-
         receiptNumber = findViewById(R.id.receiptNumber);
 
         genderSpinner = findViewById(R.id.genderSpinner);
-        bloodGroupSpinner = findViewById(R.id.bloodGroupSpinner);
+        registrationModeSpinner = findViewById(R.id.registrationMode);
         referredBySpinner = findViewById(R.id.referredBySpinner);
 
-        // Patient Image
-        mainImageView.setOnClickListener(view -> {
-
-            android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(RegisterNewPatient.this);
-            builder.setTitle("Choose an option")
-                    .setItems(new CharSequence[]{"Click Image from Camera", "Choose Image from Gallery"}, (dialog, which) -> {
-                        switch (which) {
-                            case 0: // Camera option
-                                launchCamera();
-                                break;
-                            case 1: // File Picker option
-                                launchFilePicker();
-                                break;
-                        }
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show();
-
-        });
 
         // Format and Set Default Date
         String formattedDate = String.format("%02d-%02d-%04d", day, month + 1, year);
         recordDate.setText(formattedDate);
         recordDate.setEnabled(false);
-
-
 
 //        // Date Picker For Test Date
 //        recordDate.setOnClickListener(v -> {
@@ -194,118 +170,110 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
 //        });
 
 
-        // Gender Spinner
+//       #################################### SERVICE CALLS ########################################
+        // GET_GENDERS
+        try {
+            if (AppStatus.getInstance(RegisterNewPatient.this).isOnline()) {
+                UploadObject object = new UploadObject();
+                object.setUrl(Econstants.base_url);
+                object.setMethordName(Econstants.genderMethod);
+                object.setTasktype(TaskType.GET_GENDERS);
 
+                new Generic_Async_Get(
+                        RegisterNewPatient.this,
+                        RegisterNewPatient.this,
+                        TaskType.GET_GENDERS).
+                        execute(object);
+            } else {
+                CD.showDialog(RegisterNewPatient.this, Econstants.internetNotAvailable);
+            }
 
-        List<GenderPojo> genderPojoList = new ArrayList<>();
-        genderPojoList.add(new GenderPojo(1, "Male"));
-        genderPojoList.add(new GenderPojo(2, "Female"));
-        genderPojoList.add(new GenderPojo(3, "Other"));
-        // Set Adapter
-        GenderSpinnerAdapter genderSpinnerAdapter = new GenderSpinnerAdapter(this, android.R.layout.simple_spinner_item, genderPojoList);
-        genderSpinner.setAdapter(genderSpinnerAdapter);
-
-
-        // Blood Group Spinner
-        List<BloodGroupPojo> bloodGroupPojoList = new ArrayList<>();
-        bloodGroupPojoList.add(new BloodGroupPojo(1, "A+"));
-        bloodGroupPojoList.add(new BloodGroupPojo(2, "A-"));
-        bloodGroupPojoList.add(new BloodGroupPojo(3, "B+"));
-        bloodGroupPojoList.add(new BloodGroupPojo(4, "B-"));
-        bloodGroupPojoList.add(new BloodGroupPojo(5, "O+"));
-        bloodGroupPojoList.add(new BloodGroupPojo(6, "O-"));
-        bloodGroupPojoList.add(new BloodGroupPojo(7, "AB+"));
-        bloodGroupPojoList.add(new BloodGroupPojo(8, "AB-"));
-        // Set Adapter
-        BloodGroupSpinnerAdapter bloodGroupSpinnerAdapter = new BloodGroupSpinnerAdapter(this, android.R.layout.simple_spinner_item, bloodGroupPojoList);
-        bloodGroupSpinner.setAdapter(bloodGroupSpinnerAdapter);
-
-
-        // Referred By Spinner
-        List<ReferredByPojo> referredByPojoList = new ArrayList<>();
-        referredByPojoList.add(new ReferredByPojo(1, "Aman"));
-        referredByPojoList.add(new ReferredByPojo(2, "Brijesh"));
-        referredByPojoList.add(new ReferredByPojo(3, "Chirag"));
-        referredByPojoList.add(new ReferredByPojo(4, "Deepak"));
-        referredByPojoList.add(new ReferredByPojo(5, "Esha"));
-        referredByPojoList.add(new ReferredByPojo(6, "Farhan"));
-        referredByPojoList.add(new ReferredByPojo(7, "Gaurang"));
-        referredByPojoList.add(new ReferredByPojo(8, "Hemant"));
-        referredByPojoList.add(new ReferredByPojo(9, "Ishaan"));
-        referredByPojoList.add(new ReferredByPojo(10, "Jyoti"));
-
-        // Set Adapter
-        ReferredBySpinnerAdapter ReferredBySpinnerAdapter = new ReferredBySpinnerAdapter(this, android.R.layout.simple_spinner_item, referredByPojoList);
-        referredBySpinner.setAdapter(ReferredBySpinnerAdapter);
-
-
-        // Print Location
-        if(GLOBAL_LOCATION_STR != null){
-            Log.d("Location", "Location: " + GLOBAL_LOCATION_STR);
+        } catch (Exception ex) {
+            CD.showDialog(RegisterNewPatient.this, "Something Bad happened . Please reinstall the application and try again.");
         }
 
-        // DOB
-        dob.setOnClickListener(v -> {
-            // Current Date
-            Calendar calendar = Calendar.getInstance();
-            int year = calendar.get(Calendar.YEAR);
-            int month = calendar.get(Calendar.MONTH);
-            int day = calendar.get(Calendar.DAY_OF_MONTH);
+        // GET_REGISTRATION_MODES
+        try {
+            if (AppStatus.getInstance(RegisterNewPatient.this).isOnline()) {
+                UploadObject object = new UploadObject();
+                object.setUrl(Econstants.base_url);
+                object.setMethordName(Econstants.registrationModesMethod);
+                object.setTasktype(TaskType.GET_REGISTRATION_MODES);
 
-            // Show DatePickerDialog
-            DatePickerDialog datePickerDialog = new DatePickerDialog(RegisterNewPatient.this, (view, selectedYear, selectedMonth, selectedDay) -> {
-                // Format and display the selected date in the TextView
-                String formattedDate2 = String.format("%02d-%02d-%04d", selectedDay, selectedMonth + 1, selectedYear);
-                dob.setText(formattedDate2);
+                new Generic_Async_Get(
+                        RegisterNewPatient.this,
+                        RegisterNewPatient.this,
+                        TaskType.GET_REGISTRATION_MODES).
+                        execute(object);
+            } else {
+                CD.showDialog(RegisterNewPatient.this, Econstants.internetNotAvailable);
+            }
 
-            }, year, month, day);
+        } catch (Exception ex) {
+            CD.showDialog(RegisterNewPatient.this, "Something Bad happened . Please reinstall the application and try again.");
+        }
 
-            datePickerDialog.show();
+        // GET_REFERRED_BY
+        try {
+            if (AppStatus.getInstance(RegisterNewPatient.this).isOnline()) {
+                UploadObject object = new UploadObject();
+                object.setUrl(Econstants.base_url);
+                object.setMethordName(Econstants.getReferredByMethod);
+                object.setTasktype(TaskType.GET_REFERRED_BY);
+
+                new Generic_Async_Get(
+                        RegisterNewPatient.this,
+                        RegisterNewPatient.this,
+                        TaskType.GET_REFERRED_BY).
+                        execute(object);
+            } else {
+                CD.showDialog(RegisterNewPatient.this, Econstants.internetNotAvailable);
+            }
+
+        } catch (Exception ex) {
+            CD.showDialog(RegisterNewPatient.this, "Something Bad happened . Please reinstall the application and try again.");
+        }
+
+//        ##########################################################################################
+
+
+        // Spinners: Gender, Registration Mode, Referred By
+        registrationModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedRegistrationMode = (RegistrationMode) parent.getItemAtPosition(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
         });
 
-        // Payment Radio Group
-        onlineRadioBtn.setOnClickListener(v -> {
-            receiptNoLayout.setVisibility(View.GONE);
-            receiptNumber.setText("");
+        genderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedGender = (GenderPojo) parent.getItemAtPosition(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
         });
 
-        offlineRadioBtn.setOnClickListener(v -> {
-            receiptNoLayout.setVisibility(View.VISIBLE);
-            receiptNumber.setText("");
+        referredBySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedReferredBy = (ReferredBy) parent.getItemAtPosition(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
         });
+
 
         testTV.setOnClickListener(view -> {
-
-            // Dummy Test List or Service Call
-            List<TestsPojo> testList = new ArrayList<>();
-            testList.add(new TestsPojo(101, 500, "Blood Test"));
-            testList.add(new TestsPojo(102, 1000, "MRI Scan"));
-            testList.add(new TestsPojo(103, 750, "X-Ray"));
-            testList.add(new TestsPojo(104, 1200, "CT Scan"));
-            testList.add(new TestsPojo(105, 600, "Urine Test"));
-            testList.add(new TestsPojo(106, 450, "Liver Function Test"));
-            testList.add(new TestsPojo(107, 700, "Kidney Function Test"));
-            testList.add(new TestsPojo(108, 550, "Cholesterol Test"));
-            testList.add(new TestsPojo(109, 1300, "Ultrasound"));
-            testList.add(new TestsPojo(110, 2000, "Endoscopy"));
-            testList.add(new TestsPojo(111, 1500, "Colonoscopy"));
-            testList.add(new TestsPojo(112, 900, "Thyroid Test"));
-            testList.add(new TestsPojo(113, 300, "Blood Sugar Test"));
-            testList.add(new TestsPojo(114, 850, "ECG"));
-            testList.add(new TestsPojo(115, 1600, "EEG"));
-            testList.add(new TestsPojo(116, 5000, "PET Scan"));
-            testList.add(new TestsPojo(117, 1100, "Mammogram"));
-            testList.add(new TestsPojo(118, 950, "HIV Test"));
-            testList.add(new TestsPojo(119, 400, "Hemoglobin Test"));
-            testList.add(new TestsPojo(120, 750, "Vitamin D Test"));
-
-            // Show Popup else show error message
-            if (testList != null) {
-                // All tests list...., Final Selected Tests List...., Interface Method...
-                showTestsListsDialog(testList, finalSelectionTests, this);
-            } else {
-                CD.showDialog(this, "No Tests Found");
-            }
+            makeTestsServiceCall();
         });
 
         backBtn.setOnClickListener(v -> {
@@ -315,19 +283,30 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
         proceedBtn.setOnClickListener(v -> {
 
             // Print Location
-            if(GLOBAL_LOCATION_STR != null){
+            if (GLOBAL_LOCATION_STR != null) {
                 Log.d("Location", "Location: " + GLOBAL_LOCATION_STR);
             } else {
                 Log.d("Location", "Location Not Found");
             }
 
-            if (name.getText().toString().isEmpty()) {
-                CD.showDialog(RegisterNewPatient.this, "Please Enter Name");
+
+            if (firstName.getText().toString().isEmpty()) {
+                CD.showDialog(RegisterNewPatient.this, "Please Enter First Name");
                 return;
             }
 
-            if (dob.getText().toString().isEmpty()) {
-                CD.showDialog(RegisterNewPatient.this, "Please Select Date of Birth");
+            if (lastName.getText().toString().isEmpty()) {
+                CD.showDialog(RegisterNewPatient.this, "Please Enter Last Name");
+                return;
+            }
+
+            if (selectedGender == null) {
+                CD.showDialog(RegisterNewPatient.this, "Please Select Gender");
+                return;
+            }
+
+            if (age.getText().toString().isEmpty()) {
+                CD.showDialog(RegisterNewPatient.this, "Please Enter Age");
                 return;
             }
 
@@ -336,116 +315,85 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
                 return;
             }
 
-            if (genderSpinner.getSelectedItem().toString().isEmpty()) {
-                CD.showDialog(RegisterNewPatient.this, "Please Select Gender");
-                return;
-            }
-
-            if (bloodGroupSpinner.getSelectedItem().toString().isEmpty()) {
-                CD.showDialog(RegisterNewPatient.this, "Please Select Blood Group");
-                return;
-            }
-
-            if (finalSelectionTests.isEmpty()) {
+            if (finalSelectionTests == null || finalSelectionTests.isEmpty()) {
                 CD.showDialog(RegisterNewPatient.this, "Please Select Tests");
+                return;
+            }
+
+            if (selectedRegistrationMode == null) {
+                CD.showDialog(RegisterNewPatient.this, "Please Select Registration Mode");
                 return;
             }
 
             if (amount.getText().toString().isEmpty()) {
-                CD.showDialog(RegisterNewPatient.this, "Please Select Tests");
+                CD.showDialog(RegisterNewPatient.this, "Please Select Tests to Load Amount");
                 return;
             }
 
-            if (recordDate.getText().toString().isEmpty()) {
-                CD.showDialog(RegisterNewPatient.this, "Please Select Record Date");
+            if (selectedReferredBy == null) {
+                CD.showDialog(RegisterNewPatient.this, "Please Select Referred By");
                 return;
             }
 
-            if (photoFilePath == null) {
-                CD.showDialog(RegisterNewPatient.this, "Please select image of the patient");
+            if (receiptNumber.getText().toString().isEmpty()) {
+                CD.showDialog(RegisterNewPatient.this, "Please Enter Receipt Number");
                 return;
             }
 
-
-            if(onlineRadioBtn.isChecked()){
-                // No Receipt Number required
-                receiptNoLayout.setVisibility(View.GONE);
-                receiptNumber.setText("");
-            } else if(offlineRadioBtn.isChecked()){
-                if (receiptNumber.getText().toString().isEmpty()) {
-                    CD.showDialog(RegisterNewPatient.this, "Please Enter Receipt Number");
-                    return;
-                }
-            }
-
-
-
-            Toast.makeText(this, "Patient Registered Successfully", Toast.LENGTH_SHORT).show();
+            showAddConfirmationDialog();
 
         });
 
     }
 
 
-
     // Custom Method Here
-    private void launchFilePicker() {
-        Configurations configs = new Configurations.Builder()
-                .setShowImages(true) // or set other options based on your needs
-                .setMaxSelection(1)
-                .setCheckPermission(true)
-                .build();
-
-        Intent intent = new Intent(RegisterNewPatient.this, FilePickerActivity.class);
-        intent.putExtra(FilePickerActivity.CONFIGS, configs);
-        startActivityForResult(intent, 987);
-
-    }
-
-    private void launchCamera() {
-        Intent intent = new Intent();
-        intent.setClass(RegisterNewPatient.this, CameraControllerActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.putExtra("inputData", new CameraBundleBuilder()
-                .setFullscreenMode(true)
-                .setDoneButtonString("Save")
-                .setSinglePhotoMode(false)
-                .setMax_photo(1)
-                .setManualFocus(false)
-                .setBucketName(getClass().getName())
-                .setPreviewEnableCount(true)
-                .setPreviewIconVisiblity(true)
-                .setPreviewPageRedirection(true)
-                .setEnableDone(true)
-                .setClearBucket(true)
-                .createCameraBundle());
-        startActivityForResult(intent, 1560);
-    }
-
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     private void requestPermissions() {
         if (ContextCompat.checkSelfPermission(getApplicationContext(),
-                android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION,
-                    android. Manifest.permission.INTERNET,
-                    android.Manifest.permission.READ_EXTERNAL_STORAGE,
-                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    android.Manifest.permission.CHANGE_NETWORK_STATE,
-                    android.Manifest.permission.ACCESS_FINE_LOCATION,
-                    android.Manifest.permission.ACCESS_COARSE_LOCATION,
-                    android.Manifest.permission.ACCESS_BACKGROUND_LOCATION,
-                    android.Manifest.permission.CAMERA,
-                    android.Manifest.permission.VIBRATE,
-                    android.Manifest.permission.SEND_SMS,
-                    android.Manifest.permission.RECEIVE_SMS,
-                    android.Manifest.permission.READ_MEDIA_IMAGES
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.INTERNET,
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.CHANGE_NETWORK_STATE,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.VIBRATE,
+                    Manifest.permission.SEND_SMS,
+                    Manifest.permission.RECEIVE_SMS,
+                    Manifest.permission.READ_MEDIA_IMAGES
 
             }, 0);
         }
 
     }
 
+
+    private void makeTestsServiceCall() {
+        try {
+            if (AppStatus.getInstance(RegisterNewPatient.this).isOnline()) {
+                UploadObject object = new UploadObject();
+                object.setUrl(Econstants.base_url);
+                object.setMethordName(Econstants.getTests);
+                object.setTasktype(TaskType.GET_TESTS);
+
+                new Generic_Async_Get(
+                        RegisterNewPatient.this,
+                        RegisterNewPatient.this,
+                        TaskType.GET_TESTS).
+                        execute(object);
+            } else {
+                CD.showDialog(RegisterNewPatient.this, Econstants.internetNotAvailable);
+            }
+
+        } catch (Exception ex) {
+            CD.showDialog(RegisterNewPatient.this, "Something Bad happened . Please reinstall the application and try again.");
+        }
+    }
 
     // Show Tests List Picker
     private void showTestsListsDialog(List<TestsPojo> fetchedTestList, List<TestsPojo> preSelectedTests, OnTestSelectedListener onTestSelectedListener) {
@@ -530,6 +478,62 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
         dialog.show();
     }
 
+    private void showAddConfirmationDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Register Patient")
+                .setMessage("Are you sure you want to register this patient?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+
+                    PatientRecord patientRecord = new PatientRecord();
+                    patientRecord.setFirstName(firstName.getText().toString());
+                    patientRecord.setLastName(lastName.getText().toString());
+                    patientRecord.setPatientAge(age.getText().toString());
+                    patientRecord.setPatientMobile(mobileNumber.getText().toString());
+                    patientRecord.setSampleDate(recordDate.getText().toString());
+                    patientRecord.setReceiptNumber(receiptNumber.getText().toString());
+
+                    patientRecord.setGender(String.valueOf(selectedGender.getGenderId()));
+                    patientRecord.setReferredBy(String.valueOf(selectedReferredBy.getReferredBYId()));
+                    patientRecord.setRegistrationMode(String.valueOf(selectedRegistrationMode.getRegisrationModeId()));
+                    patientRecord.setTestList(finalSelectionTests);
+
+                    // Make Service Call to Save Patient
+                    savePatientServiceCall(patientRecord.getJsonToSave().toString());
+
+                })
+                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    private void savePatientServiceCall(String jsonToSave) {
+        if (AppStatus.getInstance(RegisterNewPatient.this).isOnline()) {
+
+            String encryptedBody = null;
+            UploadObject uploadObject = new UploadObject();
+            try {
+                uploadObject.setUrl(Econstants.base_url);
+                uploadObject.setMethordName(Econstants.savePatient);
+                uploadObject.setTasktype(TaskType.SAVE_PATIENT);
+
+                Log.i("JSON To Save", "JSON Dec: " + jsonToSave);
+
+                encryptedBody = EncryptDecrypt.encrypt(jsonToSave);
+                Log.i("JSON To Save", "JSON Enc: " + encryptedBody.toString());
+
+            } catch (Exception e) {
+                Log.e("Any Exception: ", e.getMessage());
+            }
+
+            uploadObject.setParam(encryptedBody);
+
+            Log.e("Object: ", "Object: " + uploadObject.getUrl() + uploadObject.getMethordName() + uploadObject.getMasterName() + " BODY: " + uploadObject.getParam());
+
+            new Generic_Async_Post(RegisterNewPatient.this, RegisterNewPatient.this, TaskType.SAVE_PATIENT).execute(uploadObject);
+
+        } else {
+            CD.showDialog(RegisterNewPatient.this, "Internet not Available. Please Connect to the Internet and try again.");
+        }
+    }
 
 
     // Back Swipe
@@ -538,107 +542,6 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
     public void onBackPressed() {
         showExitConfirmationDialog();
     }
-
-
-
-    // Custom Method to Show Toast
-    public void showError(String errorMessage) {
-        Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
-    }
-
-
-    // ON ACTIVITY RESULT
-// ON ACTIVITY RESULT
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (data != null) {
-            // File Picked
-            if (requestCode == 987 && resultCode == RESULT_OK) {
-                ArrayList<MediaFile> selectedFiles = data.getParcelableArrayListExtra(FilePickerActivity.MEDIA_FILES);
-
-                if (selectedFiles == null || selectedFiles.isEmpty()) {
-                    CD.showDialog(RegisterNewPatient.this, "No Image Selected");
-                    return;
-                }
-
-                // Get the first file safely
-                String filePath = selectedFiles.get(0).getPath();
-                if (filePath == null || filePath.isEmpty()) {
-                    Log.e("FilePicker", "Invalid file path");
-                    return;
-                }
-
-                Log.d("File Selected", filePath);
-                actualImage = new File(filePath);
-
-                Disposable subscribe = new Compressor(this)
-                        .compressToFileAsFlowable(actualImage)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(file -> {
-                            compressedImage = file;
-
-                            if (compressedImage != null) {
-                                Log.d("Compressed Image", compressedImage.getPath());
-
-                                // Attempt to rename the file
-                                File renamedFile = new File(compressedImage.getParent(), compressedImage.getName());
-                                if (compressedImage.renameTo(renamedFile)) {
-                                    Log.d("Compressed Image Rename: ", renamedFile.getName());
-                                    Log.d("Compressed Image Path: ", renamedFile.getPath());
-
-                                    // ✅ Set the photo file path
-                                    photoFilePath = renamedFile.getPath();
-                                    photoFileName = renamedFile.getName();
-
-                                    mainImageView.setImageBitmap(BitmapFactory.decodeFile(renamedFile.getAbsolutePath()));
-                                    mainImageView.setPadding(5, 5, 5, 5);
-                                    Toast.makeText(getApplicationContext(), "One Media Attached.", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    Log.e("File Rename", "Failed to rename compressed image.");
-                                }
-                            }
-                        }, throwable -> showError(throwable.getMessage()));
-            }
-
-            // Camera Click Handling
-            if (resultCode == Activity.RESULT_OK && requestCode == 1560 && data != null) {
-                if (data.getStringArrayExtra("resultData").length == 0) {
-                    CD.showDialog(RegisterNewPatient.this, "Image not Clicked");
-                } else {
-                    list = data.getStringArrayExtra("resultData");
-                    File imgFile = new File(list[0]);  // Directly get file
-                    actualImage = new File(imgFile.getPath());
-
-                    Disposable compressedImage1 = new Compressor(this)
-                            .compressToFileAsFlowable(actualImage)
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(
-                                    file -> {
-                                        compressedImage = file;
-                                        if (compressedImage != null) {
-                                            Log.d("Compressed Image", compressedImage.getPath());
-
-                                            // ✅ Set the photo file path
-                                            photoFilePath = compressedImage.getPath();
-                                            photoFileName = compressedImage.getName();
-
-                                            mainImageView.setImageBitmap(BitmapFactory.decodeFile(compressedImage.getAbsolutePath()));
-                                            mainImageView.setPadding(5, 5, 5, 5);
-                                            Toast.makeText(getApplicationContext(), "One Image Clicked.", Toast.LENGTH_SHORT).show();
-                                        }
-                                    },
-                                    throwable -> Log.e("ERROR", throwable.getMessage())
-                            );
-                }
-            }
-        }
-    }
-
-
 
 
     // Handle permission result
@@ -662,11 +565,24 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
 
         StringBuilder selectedText = new StringBuilder();
         for (TestsPojo test : selectedTests) {
-            selectedText.append(test.getTestName()).append(" : Rs.").append(test.getTestCharges()).append("\n");
+            selectedText.append(test.getTestName())
+                    .append(" : Rs.").append(test.getTestprice())
+                    .append("\n");
         }
         testTV.setText(selectedText.toString());
 
-        amount.setText(String.valueOf("Rs. " + selectedTests.stream().mapToDouble(TestsPojo::getTestCharges).sum()));
+        // Convert testprice from String to double and sum
+        double totalAmount = selectedTests.stream()
+                .mapToDouble(test -> {
+                    try {
+                        return Double.parseDouble(test.getTestprice()); // Convert to double
+                    } catch (NumberFormatException e) {
+                        return 0.0; // Default to 0 if invalid
+                    }
+                })
+                .sum();
+
+        amount.setText("Rs. " + totalAmount);
         amount.setEnabled(false);
     }
 
@@ -678,7 +594,7 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
      */
     @Override
     public LocationConfiguration getLocationConfiguration() {
-        return com.kushkumardhawan.locationmanager.configuration.Configurations.defaultConfiguration("Permission Required !", "GPS needs to be turned on.");
+        return Configurations.defaultConfiguration("Permission Required !", "GPS needs to be turned on.");
     }
 
     @Override
@@ -766,5 +682,163 @@ public class RegisterNewPatient extends  LocationBaseActivity implements SampleP
     }
 
 
+    @Override
+    public void onTaskCompleted(ResponsePojoGet result, TaskType taskType) throws Exception {
+
+        // GET_GENDERS
+        if (TaskType.GET_GENDERS == taskType) {
+            Intent intent = getIntent();
+            SuccessResponse response = null;
+            System.out.println(result.toString());
+
+            if (result.getResponseCode().equalsIgnoreCase(String.valueOf(HttpsURLConnection.HTTP_OK))) {
+                response = JsonParse.getSuccessResponse(result.getResponse());
+
+                if (response.getStatus().equalsIgnoreCase(String.valueOf(HttpsURLConnection.HTTP_OK))) {
+
+                    Log.e("Response.getData is ", response.getData());
+                    List<GenderPojo> genderPojoList = JsonParse.parseGender(response.getData());
+
+                    if (genderPojoList != null && genderPojoList.size() > 0) {
+                        genderSpinnerAdapter = new GenderSpinnerAdapter(this, android.R.layout.simple_spinner_item, genderPojoList);
+                        genderSpinner.setAdapter(genderSpinnerAdapter);
+
+                    } else {
+                        CD.showDialog(RegisterNewPatient.this, "No Genders Found!");
+                    }
+
+                } else {
+                    CD.showDialog(RegisterNewPatient.this, "No Data Found");
+                }
+
+            } else {
+                CD.showDialog(RegisterNewPatient.this, "Error: " + result.getResponseCode());
+            }
+        }
+
+        // GET_REGISTRATION_MODES
+        else if (TaskType.GET_REGISTRATION_MODES == taskType) {
+            Intent intent = getIntent();
+            SuccessResponse response = null;
+            System.out.println(result.toString());
+
+            if (result.getResponseCode().equalsIgnoreCase(String.valueOf(HttpsURLConnection.HTTP_OK))) {
+                response = JsonParse.getSuccessResponse(result.getResponse());
+
+                if (response.getStatus().equalsIgnoreCase(String.valueOf(HttpsURLConnection.HTTP_OK))) {
+
+                    Log.e("Response.getData is: ", response.getData());
+                    List<RegistrationMode> registrationModes = JsonParse.parseRegistrationModes(response.getData());
+
+                    if (registrationModes != null && registrationModes.size() > 0) {
+                        registrationModesSpinnerAdapter = new RegistrationModesSpinnerAdapter(this, android.R.layout.simple_spinner_item, registrationModes);
+                        registrationModeSpinner.setAdapter(registrationModesSpinnerAdapter);
+
+                    } else {
+                        CD.showDialog(RegisterNewPatient.this, "No Data Found!");
+                    }
+
+                } else {
+                    CD.showDialog(RegisterNewPatient.this, "No Data Found");
+                }
+
+            } else {
+                CD.showDialog(RegisterNewPatient.this, "Error: " + result.getResponseCode());
+            }
+        }
+
+        // GET REFERRED BY
+        if (TaskType.GET_REFERRED_BY == taskType) {
+            Intent intent = getIntent();
+            SuccessResponse response = null;
+            System.out.println(result.toString());
+
+            if (result.getResponseCode().equalsIgnoreCase(String.valueOf(HttpsURLConnection.HTTP_OK))) {
+                response = JsonParse.getSuccessResponse(result.getResponse());
+
+                if (response.getStatus().equalsIgnoreCase(String.valueOf(HttpsURLConnection.HTTP_OK))) {
+
+                    Log.e("Response.getData is: ", response.getData());
+                    List<ReferredBy> referredByList = JsonParse.parseReferredBy(response.getData());
+
+                    if (referredByList != null && referredByList.size() > 0) {
+                        referredBySpinnerAdapter = new ReferredBySpinnerAdapter(this, android.R.layout.simple_spinner_item, referredByList);
+                        referredBySpinner.setAdapter(referredBySpinnerAdapter);
+
+                    } else {
+                        CD.showDialog(RegisterNewPatient.this, "No Data Found!");
+                    }
+
+                } else {
+                    CD.showDialog(RegisterNewPatient.this, "No Data Found");
+                }
+
+            } else {
+                CD.showDialog(RegisterNewPatient.this, "Error: " + result.getResponseCode());
+            }
+        }
+
+        // GET TESTS
+        if (TaskType.GET_TESTS == taskType) {
+
+            SuccessResponse response = null;
+            System.out.println(result.toString());
+
+            if (result.getResponseCode().equalsIgnoreCase(String.valueOf(HttpsURLConnection.HTTP_OK))) {
+                response = JsonParse.getSuccessResponse(result.getResponse());
+
+                if (response.getStatus().equalsIgnoreCase(String.valueOf(HttpsURLConnection.HTTP_OK))) {
+
+                    Log.e("Response.getData is: ", response.getData());
+                    List<TestsPojo> testsPojoList = JsonParse.parseTests(response.getData());
+
+                    if (testsPojoList != null && testsPojoList.size() > 0) {
+
+                        showTestsListsDialog(testsPojoList, finalSelectionTests, this);
+
+                    } else {
+                        CD.showDialog(RegisterNewPatient.this, "No Data Found!");
+                    }
+
+
+                } else {
+                    CD.showDialog(RegisterNewPatient.this, "No Data Found");
+                }
+
+            } else {
+                CD.showDialog(RegisterNewPatient.this, "Error: " + result.getResponseCode());
+            }
+        }
+
+        // Save Patient
+        else if (TaskType.SAVE_PATIENT == taskType) {
+
+            SuccessResponse response = null;
+            System.out.println(result.toString());
+
+            if (result.getResponseCode().equalsIgnoreCase(String.valueOf(HttpsURLConnection.HTTP_OK))) {
+                response = JsonParse.getSuccessResponse(result.getResponse());
+
+                if (response.getStatus().equalsIgnoreCase(String.valueOf(HttpsURLConnection.HTTP_OK))) {
+
+                    // Save Data
+                    CD.showDismissActivityDialog(RegisterNewPatient.this, response.getMessage());
+                } else {
+                    CD.showDialog(RegisterNewPatient.this, response.getMessage());
+                }
+
+
+            } else {
+                CD.showDialog(RegisterNewPatient.this, "No Data Found");
+            }
+
+        }
+
+
+    }
+
+
 }
+
+
 

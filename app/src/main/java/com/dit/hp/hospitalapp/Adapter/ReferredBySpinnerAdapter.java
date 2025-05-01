@@ -7,16 +7,17 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.dit.hp.hospitalapp.Modals.ReferredByPojo;
+import com.dit.hp.hospitalapp.Modals.ReferredBy;
+import com.dit.hp.hospitalapp.Modals.ReferredBy;
 
 import java.util.List;
 
-public class ReferredBySpinnerAdapter extends ArrayAdapter<ReferredByPojo> {
+public class ReferredBySpinnerAdapter extends ArrayAdapter<ReferredBy> {
 
     private Context context;
-    private List<ReferredByPojo> values;
+    private List<ReferredBy> values;
 
-    public ReferredBySpinnerAdapter(Context context, int textViewResourceId, List<ReferredByPojo> values) {
+    public ReferredBySpinnerAdapter(Context context, int textViewResourceId, List<ReferredBy> values) {
         super(context, textViewResourceId, values);
         this.context = context;
         this.values = values;
@@ -26,7 +27,7 @@ public class ReferredBySpinnerAdapter extends ArrayAdapter<ReferredByPojo> {
         return values.size();
     }
 
-    public ReferredByPojo getItem(int position) {
+    public ReferredBy getItem(int position) {
         return values.get(position);
     }
 
@@ -34,16 +35,6 @@ public class ReferredBySpinnerAdapter extends ArrayAdapter<ReferredByPojo> {
         return position;
     }
 
-
-    public int getPositionForItem(int id) {
-        for (int i = 0; i < values.size(); i++) {
-            ReferredByPojo item = values.get(i);
-            if (item.getName().equals(id)) {
-                return i;
-            }
-        }
-        return -1; // Return -1 if no match is found
-    }
 
 
     // This is for the "passive" state of the spinner
@@ -54,7 +45,7 @@ public class ReferredBySpinnerAdapter extends ArrayAdapter<ReferredByPojo> {
         label.setTextSize(18);
         label.setTextColor(Color.parseColor("#13914f"));
         label.setPadding(30, 0, 30, 0);
-        label.setText(values.get(position).getName());
+        label.setText(values.get(position).getReferredByName() + " - " + values.get(position).getReferredByHospitalName());
         return label;
     }
 
@@ -66,7 +57,7 @@ public class ReferredBySpinnerAdapter extends ArrayAdapter<ReferredByPojo> {
         label.setTextColor(Color.parseColor("#585566"));
         label.setTextSize(18);
         label.setPadding(15, 15, 15, 15);
-        label.setText(values.get(position).getName());
+        label.setText(values.get(position).getReferredByName() + " - " + values.get(position).getReferredByHospitalName());
         return label;
     }
 }

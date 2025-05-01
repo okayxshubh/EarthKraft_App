@@ -1,5 +1,3 @@
-
-
 package com.dit.hp.hospitalapp.utilities;
 
 import android.app.Activity;
@@ -8,32 +6,32 @@ import android.content.SharedPreferences;
 
 public class Preferences {
 
-    // Singleton Instance of This Class
+    // Singleton Instance
     private static Preferences instance;
 
     private SharedPreferences preferences;
     private SharedPreferences.Editor editor;
 
-    // Just like an Econstant Name
-    private final String preferenceName = "com.dit.hp.hrtc_app";
+    // Preference file name
+    private final String preferenceName = "com.dit.hp.ekraft";
 
-    // Key Names
+    // Keys
+    private final String KEY_USER_ID = "userId";
     private final String KEY_USER_NAME = "userName";
+    private final String KEY_MOBILE_NUMBER = "mobileNumber";
+    private final String KEY_FIRST_NAME = "firstName";
+    private final String KEY_LAST_NAME = "lastName";
     private final String KEY_ROLE_ID = "roleId";
     private final String KEY_ROLE_NAME = "roleName";
-    private final String KEY_DEPOT_ID = "depotId";
-    private final String KEY_DEPOT_NAME = "depotName";
-    private final String KEY_EMP_ID = "empId";
-    private final String KEY_TOKEN = "token";
 
     // Instance Variables
-    public Integer empId;
-    public String depotName = null;
-    public Integer roleId;
-    public String roleName = null;
-    public Integer depotId;
+    public int userId;
     public String userName = null;
-    public String token = null;
+    public Long mobileNumber = null;
+    public String firstName = null;
+    public String lastName = null;
+    public int roleId;
+    public String roleName = null;
 
     // Singleton Constructor
     private Preferences() {
@@ -53,25 +51,18 @@ public class Preferences {
 
         preferences = context.getSharedPreferences(preferenceName, Activity.MODE_PRIVATE);
 
-        // Load values and handle `-1` as `null` for integers
-        int empIdValue = preferences.getInt(KEY_EMP_ID, -1);
-        empId = (empIdValue == -1) ? null : empIdValue;
-
-        depotName = preferences.getString(KEY_DEPOT_NAME, null);
-
-        int roleIdValue = preferences.getInt(KEY_ROLE_ID, -1);
-        roleId = (roleIdValue == -1) ? null : roleIdValue;
-
-        roleName = preferences.getString(KEY_ROLE_NAME, null);
-
-        int depotIdValue = preferences.getInt(KEY_DEPOT_ID, -1);
-        depotId = (depotIdValue == -1) ? null : depotIdValue;
-
+        userId = preferences.getInt(KEY_USER_ID, -1);
         userName = preferences.getString(KEY_USER_NAME, null);
 
-        token = preferences.getString(KEY_TOKEN, null);
-    }
+        long mobileNumValue = preferences.getLong(KEY_MOBILE_NUMBER, -1);
+        mobileNumber = (mobileNumValue == -1) ? null : mobileNumValue;
 
+        firstName = preferences.getString(KEY_FIRST_NAME, null);
+        lastName = preferences.getString(KEY_LAST_NAME, null);
+
+        roleId = preferences.getInt(KEY_ROLE_ID, -1);
+        roleName = preferences.getString(KEY_ROLE_NAME, null);
+    }
 
     // Save Preferences
     public void savePreferences(Context context) {
@@ -80,15 +71,17 @@ public class Preferences {
         preferences = context.getSharedPreferences(preferenceName, Activity.MODE_PRIVATE);
         editor = preferences.edit();
 
-        // Save integer values and handle null
-        editor.putInt(KEY_EMP_ID, empId == null ? -1 : empId);
-        editor.putString(KEY_DEPOT_NAME, depotName);
-        editor.putInt(KEY_ROLE_ID, roleId == null ? -1 : roleId);
-        editor.putString(KEY_ROLE_NAME, roleName);
-        editor.putInt(KEY_DEPOT_ID, depotId == null ? -1 : depotId);
+        editor.putInt(KEY_USER_ID, userId);
         editor.putString(KEY_USER_NAME, userName);
-        editor.putString(KEY_TOKEN, token);
 
-        editor.apply(); // Apply changes asynchronously
+        editor.putLong(KEY_MOBILE_NUMBER, mobileNumber == null ? -1L : mobileNumber);
+
+        editor.putString(KEY_FIRST_NAME, firstName);
+        editor.putString(KEY_LAST_NAME, lastName);
+
+        editor.putInt(KEY_ROLE_ID, roleId);
+        editor.putString(KEY_ROLE_NAME, roleName);
+
+        editor.apply();
     }
 }

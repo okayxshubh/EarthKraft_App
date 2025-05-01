@@ -28,14 +28,24 @@ public class Econstants {
 
     // Add master names
     public static final String API_NAME_HRTC = "HRTC";
-    public static final String loginMethod = "/login/Auth?";
+//    public static final String loginMethod = "/login/Auth?";
+
+
+    public static final String loginMethod = "/login";
+    public static final String genderMethod = "/genders";
+    public static final String registrationModesMethod = "/getRegistrationModes";
+    public static final String getReferredByMethod = "/getReferredBy";
+    public static final String getTests = "/getTests";
+
+    public static final String savePatient = "/savePatient";
+
 
 
 //    public static final String base_url = "http://192.168.29.216:8081"; // Shubham Home Local
 
 //    public static final String base_url = "https://himstaging1.hp.gov.in/hrtc"; // Staging
 
-    public static final String base_url = "https://himparivarservices.hp.gov.in/hrtc"; // PROD
+    public static final String base_url = "http://www.theearthkraftnetwork.com/api"; // PROD
 
 
     public static ResponsePojoGet createOfflineObject(String url, String requestParams, String response, String Code, String functionName) {

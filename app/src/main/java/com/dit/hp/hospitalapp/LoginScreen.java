@@ -5,29 +5,45 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
-import android.widget.ToggleButton;
+import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import com.dit.hp.hospitalapp.Modals.LoginUser;
+import com.dit.hp.hospitalapp.Modals.ResponsePojoGet;
+import com.dit.hp.hospitalapp.Modals.SuccessResponse;
+import com.dit.hp.hospitalapp.Modals.UploadObject;
 import com.dit.hp.hospitalapp.Presentation.CustomDialog;
+import com.dit.hp.hospitalapp.enums.TaskType;
+import com.dit.hp.hospitalapp.interfaces.AsyncTaskListenerObject;
+import com.dit.hp.hospitalapp.network.Generic_Async_Post;
+import com.dit.hp.hospitalapp.utilities.AppStatus;
+import com.dit.hp.hospitalapp.utilities.Econstants;
+import com.dit.hp.hospitalapp.utilities.EncryptDecrypt;
+import com.dit.hp.hospitalapp.utilities.JsonParse;
+import com.dit.hp.hospitalapp.utilities.Preferences;
 
-public class LoginScreen extends AppCompatActivity {
+import org.json.JSONObject;
 
-    ToggleButton customerLogin, customerCareLogin;
+import javax.net.ssl.HttpsURLConnection;
+
+public class LoginScreen extends AppCompatActivity implements AsyncTaskListenerObject {
+
     EditText username, password;
-    Button signIn, register;
+    Button signIn;
+    TextView register;
 
     CustomDialog CD = new CustomDialog();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_hospital_login_try);
+        setContentView(R.layout.activity_login);
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -36,31 +52,55 @@ public class LoginScreen extends AppCompatActivity {
 
         username = findViewById(R.id.username);
         password = findViewById(R.id.password);
-        signIn = findViewById(R.id.login);
-        register = findViewById(R.id.newUserBtn);
+        signIn = findViewById(R.id.signIn);
+//        register = findViewById(R.id.register);
 
-        customerLogin = findViewById(R.id.customerLogin);
-        customerCareLogin = findViewById(R.id.customerCareLogin);
+//        ##########################################################
 
-        // By Default Customer Care Login active
-        customerLogin.setChecked(false);
-        customerCareLogin.setChecked(true);
+//        EncryptDecrypt encryptDecrypt = new EncryptDecrypt();
+//        String encrypted = encryptText("{\n" +
+//                "  \"firstName\": \"Brijesh\",\n" +
+//                "  \"lastname\": \"Kumar\",\n" +
+//                "  \"patientAge\": \"23\",\n" +
+//                "  \"patientMobile\": \"9876543210\",\n" +
+//                "  \"sampleDate\": \"01-05-2025\",\n" +
+//                "  \"receiptNumber\": \"RCPT20250501\",\n" +
+//                "  \"gender\": \"1\",\n" +
+//                "  \"referredBy\": \"1\",\n" +
+//                "  \"registrationMode\": \"1\",\n" +
+//                "  \"tests\": [\n" +
+//                "    {\n" +
+//                "      \"testName\": \"CBC\",\n" +
+//                "      \"testId\": \"88\"\n" +
+//                "    },\n" +
+//                "    {\n" +
+//                "      \"testName\": \"DDymer\",\n" +
+//                "      \"testId\": \"89\"\n" +
+//                "    },\n" +
+//                "    {\n" +
+//                "      \"testName\": \"Test 2\",\n" +
+//                "      \"testId\": \"90\"\n" +
+//                "    }\n" +
+//                "  ]\n" +
+//                "}");
+//        Log.e("ENC:", encrypted);
+//
+//        String decrypted = decryptText(encrypted);
+//        Log.e("DEC:", decrypted);
 
-        customerLogin.setOnClickListener(v -> {
-            customerLogin.setChecked(true);
-            customerCareLogin.setChecked(false);
-            // Show Tab 1 Content
-        });
+//        ##########################################################
 
-        customerCareLogin.setOnClickListener(v -> {
-            customerLogin.setChecked(false);
-            customerCareLogin.setChecked(true);
-            // Show Tab 2 Content
-        });
 
+        username.setText("kush");
+        password.setText("Demo@123");
 
         // Login Button
         signIn.setOnClickListener(v -> {
+
+            if (!AppStatus.getInstance(LoginScreen.this).isOnline()) {
+                CD.showDialog(this, Econstants.internetNotAvailable);
+                return;
+            }
 
             if (username.getText().toString().isEmpty()) {
                 CD.showDialog(this, "Please Enter Correct Username");
@@ -72,43 +112,47 @@ public class LoginScreen extends AppCompatActivity {
                 return;
             }
 
-            if (customerLogin.isChecked()) {
-                // Perform login for customer login
-                customerLogin(username.getText().toString(), password.getText().toString());
+            serviceCallLogin(username.getText().toString(), password.getText().toString());
 
-                Intent intent = new Intent(this, Homescreen.class);
-                startActivity(intent);
-                finish();
+        });
+
+//        register.setOnClickListener(view -> {
+//            CD.showDialog(this, "Under Process..");
+//        });
 
 
-            } else if (customerCareLogin.isChecked()) {
-                // Perform login for customer care login
-                customerCareLogin(username.getText().toString(), password.getText().toString());
+    }
 
-                Intent intent = new Intent(this, Homescreen.class);
-                startActivity(intent);
-                finish();
+    private void serviceCallLogin(String id, String pass) {
+        if (AppStatus.getInstance(LoginScreen.this).isOnline()) {
+            UploadObject object = new UploadObject();
+            object.setUrl(Econstants.base_url);
+            object.setMethordName(Econstants.loginMethod);
+            object.setMasterName(null);
+            object.setTasktype(TaskType.LOGIN);
 
-            } else {
-                CD.showDialog(this, "Something went wrong. Please restart the application and try again.");
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("username", username.getText().toString());
+                jsonObject.put("password", password.getText().toString());
+
+                object.setParam(EncryptDecrypt.encrypt(jsonObject.toString()));
+
+            } catch (Exception e) {
+                Log.e("Exception: ", e.getLocalizedMessage().toString());
+                e.printStackTrace();
             }
 
-        });
-
-        register.setOnClickListener(view -> {
-            CD.showDialog(this, "Under Process..");
-        });
-
-
+            new Generic_Async_Post(
+                    LoginScreen.this,
+                    LoginScreen.this,
+                    TaskType.LOGIN).
+                    execute(object);
+        } else {
+            CD.showDialog(LoginScreen.this, Econstants.internetNotAvailable);
+        }
     }
 
-    private void customerLogin(String id, String pass) {
-        Toast.makeText(LoginScreen.this, "Customer Login " + id + " " + pass, Toast.LENGTH_SHORT).show();
-    }
-
-    private void customerCareLogin(String id, String pass) {
-        Toast.makeText(LoginScreen.this, "Customer Care Login " + id + " " + pass, Toast.LENGTH_SHORT).show();
-    }
 
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     private void requestPermissions() {
@@ -137,4 +181,91 @@ public class LoginScreen extends AppCompatActivity {
 
     }
 
+
+    // Methods
+    public static String encryptText(String plainText) {
+        try {
+            EncryptDecrypt encryptDecrypt = new EncryptDecrypt();
+            return encryptDecrypt.encrypt(plainText);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String decryptText(String encryptedText) {
+        try {
+            EncryptDecrypt encryptDecrypt = new EncryptDecrypt();
+            return encryptDecrypt.decrypt(encryptedText);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @Override
+    public void onTaskCompleted(ResponsePojoGet result, TaskType taskType) throws Exception {
+
+        // Login Task Type
+        if (TaskType.LOGIN == taskType) {
+            Log.i("ASYNC TASK COMPLETED", "TASK TYPE IS LOGIN.. CHECKED");
+            SuccessResponse successResponse = null;
+
+            if (result != null) {
+                successResponse = JsonParse.getSuccessResponse(result.getResponse());
+
+                String status = successResponse.getStatus();
+                String responseData = successResponse.getData();
+
+                if (status.equalsIgnoreCase(String.valueOf(HttpsURLConnection.HTTP_OK))) {
+                    Log.i("Login Response", responseData);
+
+                    LoginUser user = JsonParse.parseLoginUser(responseData);
+                    if (user != null) {
+                        Log.i("LoginActivity", "User Login As: " + user.toString());
+
+                        Preferences pref = Preferences.getInstance();
+                        pref.roleId = user.getRoleId();
+                        pref.roleName = user.getRoleName();
+                        pref.userId = user.getUserId();
+                        pref.userName = user.getUserName();
+                        pref.firstName = user.getFirstName();
+                        pref.lastName = user.getLastNmae();
+                        pref.mobileNumber = user.getMobileNumber();
+                        pref.savePreferences(this);
+
+                        Intent loginIntent = new Intent(LoginScreen.this, Homescreen.class);
+                        startActivity(loginIntent);
+                        finish();
+                    } else {
+                        CD.showDialog(this, "Something went wrong. Try again!");
+                    }
+
+                } else if (status.equalsIgnoreCase(String.valueOf(204))) {
+                    // Password doesn't match case (204)
+                    Log.i("Login Response", responseData);
+                    CD.showDialog(this, "Enter Correct Password");
+
+                } else if (status.equalsIgnoreCase(String.valueOf(HttpsURLConnection.HTTP_INTERNAL_ERROR))) {
+                    // 500 Error
+                    Log.i("Login Response", responseData);
+                    CD.showDialog(this, "Enter correct username.");
+
+                } else if (status.equalsIgnoreCase(String.valueOf(HttpsURLConnection.HTTP_GONE))) {
+                    // 410 Gone
+                    CD.showDialog(this, "Please enter correct username and password");
+
+                } else {
+                    CD.showDialog(this, "Something went wrong. Check your connection.");
+                }
+
+            } else {
+                Log.i("LoginHRTC", "Response is null");
+                CD.showDialog(this, "Something went wrong. Check your connection.");
+            }
+        }
+
+
+    }
 }
+
+
