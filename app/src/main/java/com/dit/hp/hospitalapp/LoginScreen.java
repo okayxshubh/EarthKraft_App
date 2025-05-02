@@ -91,8 +91,8 @@ public class LoginScreen extends AppCompatActivity implements AsyncTaskListenerO
 //        ##########################################################
 
 
-        username.setText("kush");
-        password.setText("Demo@123");
+//        username.setText("kush");
+//        password.setText("Demo@123");
 
         // Login Button
         signIn.setOnClickListener(v -> {
